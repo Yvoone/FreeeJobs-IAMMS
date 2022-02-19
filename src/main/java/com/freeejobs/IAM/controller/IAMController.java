@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.freeejobs.IAM.model.IAM;
+import com.freeejobs.IAM.model.User;
 import com.freeejobs.IAM.service.IAMService;
 import com.freeejobs.IAM.dto.UserDTO;
+import com.freeejobs.IAM.dto.LoginDTO;
 
 @RestController
 @RequestMapping(value="/iam")
@@ -28,10 +30,10 @@ public class IAMController {
 	private IAMService IAMService;
 
 	@RequestMapping(value="/userProfile", method= RequestMethod.GET)
-	public IAM getUserByUserId(HttpServletResponse response,
+	public User getUserByUserId(HttpServletResponse response,
 			@RequestParam long userId) throws URISyntaxException {
 
-		IAM userProfile = null;
+		User userProfile = null;
 
 		try {
 			System.out.println(userId);
@@ -58,12 +60,12 @@ public class IAMController {
 	public IAM registerUser(HttpServletResponse response,
 			@RequestBody UserDTO userDTO) throws URISyntaxException {
 
-		IAM userProfile = null;
+		IAM iam = null;
 
 		try {
 			System.out.println(userDTO.getFirstName());
-			userProfile = IAMService.registerUser(userDTO);
-				if(userProfile == null) {
+			iam = IAMService.registerUser(userDTO);
+				if(iam == null) {
 					System.out.println("null");
 					response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 					return null;
@@ -78,7 +80,34 @@ public class IAMController {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			return null;
 		}
-		return userProfile;
+		return iam;
 	}
 
+	@RequestMapping(value="/login", method= RequestMethod.POST)
+	public LoginDTO registerUser(HttpServletResponse response,
+			@RequestBody LoginDTO loginDTO) throws URISyntaxException {
+
+		LoginDTO login = null;
+
+		try {
+			System.out.println(loginDTO.getEmail());
+			login = IAMService.login(loginDTO);
+				if(login == null) {
+					System.out.println("null");
+					response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					return null;
+				} else {
+					response.setStatus(HttpServletResponse.SC_OK);
+
+				}
+
+
+
+		} catch (Exception e) {
+			System.out.println(e);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return null;
+		}
+		return login;
+	}
 }

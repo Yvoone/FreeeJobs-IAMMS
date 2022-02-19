@@ -17,7 +17,7 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "user")
+@Table(name = "iam")
 public class IAM {
 
 	@Id
@@ -27,36 +27,11 @@ public class IAM {
 	@Column(name = "password")
 	private String password;
 
-	@Column(name = "firstName")
-	private String firstName;
-
-	@Column(name = "lastName")
-	private String lastName;
-
 	@Column(name = "email")
 	private String email;
 
-	@Column(name = "contactNo")
-	private String contactNo;
-
-	@Column(name = "gender")
-	private String gender;
-
-	@Column(name = "professionalTitle")
-	private String professionalTitle;
-
-	@Column(name = "aboutMe")
-	private String aboutMe;
-
-	@Column(name = "skills")
-	private String skills;
-
-	@Column(name = "linkedInAcct")
-	private String linkedInAcct;
-
-	@Column(name = "dob", columnDefinition="DATETIME")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date dob;
+	@Column(name = "userId")
+	private long userId;
 
 	@Column(name = "dateCreated", columnDefinition="DATETIME")
 	@Temporal(TemporalType.TIMESTAMP)
@@ -82,20 +57,12 @@ public class IAM {
 		this.password = password;
 	}
 
-	public String getFirstName() {
-		return firstName;
+	public long getUserId() {
+		return userId;
 	}
 
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	public String getLastName() {
-		return lastName;
-	}
-
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
+	public void setUserId(long userId) {
+		this.userId = userId;
 	}
 
 	public String getEmail() {
@@ -104,62 +71,6 @@ public class IAM {
 
 	public void setEmail(String email) {
 		this.email = email;
-	}
-
-	public String getContactNo() {
-		return contactNo;
-	}
-
-	public void setContactNo(String contactNo) {
-		this.contactNo = contactNo;
-	}
-
-	public String getGender() {
-		return gender;
-	}
-
-	public void setGender(String gender) {
-		this.gender = gender;
-	}
-
-	public String getProfessionalTitle() {
-		return professionalTitle;
-	}
-
-	public void setProfessionalTitle(String professionalTitle) {
-		this.professionalTitle = professionalTitle;
-	}
-
-	public String getAboutMe() {
-		return aboutMe;
-	}
-
-	public void setAboutMe(String aboutMe) {
-		this.aboutMe = aboutMe;
-	}
-
-	public String getSkills() {
-		return skills;
-	}
-
-	public void setSkills(String skills) {
-		this.skills = skills;
-	}
-
-	public String getLinkedInAcct() {
-		return linkedInAcct;
-	}
-
-	public void setLinkedInAcct(String linkedInAcct) {
-		this.linkedInAcct = linkedInAcct;
-	}
-
-	public Date getDOB() {
-		return dob;
-	}
-
-	public void setDOB(Date dob) {
-		this.dob = dob;
 	}
 
 	public Date getDateCreated() {
