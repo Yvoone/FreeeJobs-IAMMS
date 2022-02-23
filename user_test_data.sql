@@ -1,0 +1,3 @@
+INSERT INTO freeejobs_user.user VALUES(1, 'This is about me section for first test data', '90000001', sysdate(), sysdate(), '1993-02-22 00:00:00', 'Ah Kau', 'Male', 'Tan', null, 'Singer', 'Cooking, Singing, Dancing');
+INSERT INTO freeejobs_user.user VALUES(2, 'This is about me section for second test data', '90000009', sysdate(), sysdate(), '1995-02-22 00:00:00', 'Benson', 'Male', 'Tan', null, 'Software Engineer', 'Java, Ruby, Phyton, Kotlin, Javascript, C++, C#');
+INSERT INTO freeejobs_user.user VALUES(3, 'This is about me section for third test data', '90000003', sysdate(), sysdate(), '2000-02-22 00:00:00', 'Cathy', 'Female', 'Tan', null, 'Professor', 'Mathemathics, Algebra, Sine, Cosine, Tangent, Science, Languages');
