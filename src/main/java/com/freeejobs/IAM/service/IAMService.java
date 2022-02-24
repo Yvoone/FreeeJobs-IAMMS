@@ -1,5 +1,6 @@
 package com.freeejobs.IAM.service;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -90,6 +91,21 @@ public class IAMService {
 		else {
 			return 0;
 		}
+	}
+	
+	public User updateUser(User user) {
+		User oldUser = userRepository.findById(user.getId());
+		user.setFirstName(user.getFirstName());
+		user.setLastName(user.getLastName());
+		user.setContactNo(user.getContactNo());
+		user.setGender(oldUser.getGender());
+		user.setDOB(user.getDOB());
+		user.setProfessionalTitle(user.getProfessionalTitle());
+		user.setAboutMe(user.getAboutMe());
+		user.setSkills(user.getSkills());
+		user.setDateCreated(oldUser.getDateCreated());
+		user.setDateUpdated(new Date());
+		return userRepository.save(user);
 	}
 
 }
