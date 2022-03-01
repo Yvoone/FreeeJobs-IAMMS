@@ -42,6 +42,9 @@ public class User {
 	@Column(name = "aboutMe")
 	private String aboutMe;
 
+	@Column(name = "aboutMeClient")
+	private String aboutMeClient;
+
 	@Column(name = "skills")
 	private String skills;
 
@@ -114,6 +117,14 @@ public class User {
 
 	public void setAboutMe(String aboutMe) {
 		this.aboutMe = aboutMe;
+	}
+
+	public String getAboutMeClient() {
+		return aboutMeClient;
+	}
+
+	public void setAboutMeClient(String aboutMeClient) {
+		this.aboutMeClient = aboutMeClient;
 	}
 
 	public String getSkills() {

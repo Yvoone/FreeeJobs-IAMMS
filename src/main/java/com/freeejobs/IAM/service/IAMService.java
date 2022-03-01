@@ -14,6 +14,8 @@ import com.freeejobs.IAM.model.User;
 import com.freeejobs.IAM.repository.UserRepository;
 import com.freeejobs.IAM.dto.UserDTO;
 import com.freeejobs.IAM.dto.LoginDTO;
+import com.freeejobs.IAM.constants.IAMConstants;
+import java.util.Calendar;
 
 @Service
 public class IAMService {
@@ -37,24 +39,62 @@ public class IAMService {
 	public LoginDTO login(LoginDTO loginDTO) {
 
 		IAM userCred = getIAMByEmail(loginDTO.getEmail());
+		Calendar currCal = Calendar.getInstance();
+		Date currDate = currCal.getTime();
 
 		if (userCred == null) {
 			loginDTO.setLoginStatus(0);
+		}
+		else if (userCred.getFailedAttempt() >= IAMConstants.LOGIN.FAIL_ATTEMPT) {
+			loginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_LOCKED);
 		}
 		else {
 			loginDTO.setLoginStatus(getLoginStatus(loginDTO.getPassword(), userCred.getPassword()));
 		}
 
-		if(loginDTO.getLoginStatus() == 1) {
-			loginDTO.setUserId(userCred.getUserId());
+		if(loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_SUCCESS) {
+			if(userCred.getSessionTimeout() != null ) {
+				if(currDate.before(userCred.getSessionTimeout())) {
+					loginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_ACTIVE_SESSION);
+				}
+			}
+
+			if (loginDTO.getLoginStatus() != IAMConstants.LOGIN.STATUS_ACTIVE_SESSION) {
+				currCal.add(Calendar.MINUTE, IAMConstants.LOGIN.SESSION_DURATION);
+				Date timeoutTime = currCal.getTime();
+				userCred.setSessionTimeout(timeoutTime);
+				loginDTO.setUserId(userCred.getUserId());
+			}
+			userCred.setFailedAttempt(IAMConstants.LOGIN.DEFAULT_ATTEMPT);
+			loginDTO.setUserRole(userCred.getUserRole());
 		}
+		else if (loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_FAIL) {
+			int failedAttempt = userCred.getFailedAttempt() + 1;
+			userCred.setFailedAttempt(failedAttempt);
+		}
+
+		userCred.setDateUpdated(currDate);
+		iamRepository.save(userCred);
 
 		return loginDTO;
 
 	}
 
 	public IAM registerUser(UserDTO userDTO) {
+
+		return addUser(userDTO, IAMConstants.USER.USER_ROLE_REGULAR);
+
+	}
+
+	public IAM registerAdmin(UserDTO userDTO) {
+
+		return addUser(userDTO, IAMConstants.USER.USER_ROLE_ADMIN);
+	}
+
+	private IAM addUser(UserDTO userDTO, int userRole) {
 		User user = new User();
+		Date currDate = new Date();
+
 		user.setFirstName(userDTO.getFirstName());
 		user.setLastName(userDTO.getLastName());
 		user.setContactNo(userDTO.getContactNo());
@@ -62,7 +102,11 @@ public class IAMService {
 		user.setDOB(userDTO.getDOB());
 		user.setProfessionalTitle(userDTO.getProfessionalTitle());
 		user.setAboutMe(userDTO.getAboutMe());
+		user.setAboutMeClient(userDTO.getAboutMeClient());
 		user.setSkills(userDTO.getSkills());
+		user.setDateCreated(currDate);
+		user.setDateUpdated(currDate);
+
 
 		long userId = registerUserProfile(user).getId();
 
@@ -71,9 +115,13 @@ public class IAMService {
 		iam.setEmail(userDTO.getEmail());
 		iam.setPassword(userDTO.getPassword());
 		iam.setUserId(userId);
+		iam.setUserRole(userRole);
+		iam.setFailedAttempt(IAMConstants.LOGIN.DEFAULT_ATTEMPT);
+		iam.setDateCreated(currDate);
+		iam.setDateUpdated(currDate);
+
 
 		return registerUserCredential(iam);
-
 	}
 
 	private User registerUserProfile(User user) {
@@ -86,13 +134,13 @@ public class IAMService {
 
 	private int getLoginStatus(String enteredPwd, String savedPwd) {
 		if (enteredPwd.equals(savedPwd)) {
-			return 1;
+			return IAMConstants.LOGIN.STATUS_SUCCESS;
 		}
 		else {
-			return 0;
+			return IAMConstants.LOGIN.STATUS_FAIL;
 		}
 	}
-	
+
 	public User updateUser(User user) {
 		User oldUser = userRepository.findById(user.getId());
 		user.setFirstName(user.getFirstName());
@@ -102,6 +150,7 @@ public class IAMService {
 		user.setDOB(user.getDOB());
 		user.setProfessionalTitle(user.getProfessionalTitle());
 		user.setAboutMe(user.getAboutMe());
+		user.setAboutMeClient(user.getAboutMeClient());
 		user.setSkills(user.getSkills());
 		user.setDateCreated(oldUser.getDateCreated());
 		user.setDateUpdated(new Date());

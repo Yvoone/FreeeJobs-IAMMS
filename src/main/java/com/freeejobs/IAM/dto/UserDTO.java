@@ -12,6 +12,7 @@ public class UserDTO {
 	private String gender;
 	private String professionalTitle;
 	private String aboutMe;
+	private String aboutMeClient;
 	private String skills;
 	private String linkedInAcct;
 	private Date dob;
@@ -54,6 +55,10 @@ public class UserDTO {
 
 	public String getAboutMe() {
 		return aboutMe;
+	}
+
+	public String getAboutMeClient() {
+		return aboutMeClient;
 	}
 
 	public String getSkills() {

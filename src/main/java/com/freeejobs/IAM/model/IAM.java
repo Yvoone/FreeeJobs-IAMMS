@@ -33,6 +33,12 @@ public class IAM {
 	@Column(name = "userId")
 	private long userId;
 
+	@Column(name = "userRole")
+	private int userRole;
+
+	@Column(name = "failedAttempt")
+	private int failedAttempt;
+
 	@Column(name = "dateCreated", columnDefinition="DATETIME")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date dateCreated;
@@ -40,6 +46,10 @@ public class IAM {
 	@Column(name = "dateUpdated", columnDefinition="DATETIME")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date dateUpdated;
+
+	@Column(name = "sessionTimeout", columnDefinition="DATETIME")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date sessionTimeout;
 
 	public long getId() {
 		return id;
@@ -89,6 +99,30 @@ public class IAM {
 		this.dateUpdated = dateUpdated;
 	}
 
+	public Date getSessionTimeout() {
+		return sessionTimeout;
+	}
+
+	public void setSessionTimeout(Date sessionTimeout) {
+		this.sessionTimeout = sessionTimeout;
+	}
+
+
+	public int getUserRole() {
+		return userRole;
+	}
+
+	public void setUserRole(int userRole) {
+		this.userRole = userRole;
+	}
+
+	public int getFailedAttempt() {
+		return failedAttempt;
+	}
+
+	public void setFailedAttempt(int failedAttempt) {
+		this.failedAttempt = failedAttempt;
+	}
 
 
 }

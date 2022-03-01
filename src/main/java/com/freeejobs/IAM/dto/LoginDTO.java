@@ -9,6 +9,7 @@ public class LoginDTO {
 	private int isLinkedInAcct ;
 	private int loginStatus;
 	private long userId;
+	private int userRole;
 
     public long getId() {
 		return id;
@@ -44,5 +45,13 @@ public class LoginDTO {
 
 	public void setUserId(long userId) {
 		this.userId = userId;
+	}
+
+	public int getUserRole() {
+		return userRole;
+	}
+
+	public void setUserRole(int userRole) {
+		this.userRole = userRole;
 	}
 }

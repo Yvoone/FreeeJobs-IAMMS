@@ -85,6 +85,33 @@ public class IAMController {
 		return iam;
 	}
 
+	@RequestMapping(value="/registerAdmin", method= RequestMethod.POST)
+	public IAM registerAdmin(HttpServletResponse response,
+			@RequestBody UserDTO userDTO) throws URISyntaxException {
+
+		IAM iam = null;
+
+		try {
+			System.out.println(userDTO.getFirstName());
+			iam = IAMService.registerAdmin(userDTO);
+				if(iam == null) {
+					System.out.println("null");
+					response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					return null;
+				} else {
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
+
+
+
+		} catch (Exception e) {
+			System.out.println(e);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return null;
+		}
+		return iam;
+	}
+
 	@RequestMapping(value="/login", method= RequestMethod.POST)
 	public LoginDTO registerUser(HttpServletResponse response,
 			@RequestBody LoginDTO loginDTO) throws URISyntaxException {
@@ -112,7 +139,7 @@ public class IAMController {
 		}
 		return login;
 	}
-	
+
 	@PutMapping("/{id}/edit")
     public void updateUser(@PathVariable("id") Long id, @RequestBody User user) {
 		IAMService.updateUser(user);
