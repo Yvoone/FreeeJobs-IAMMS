@@ -139,9 +139,34 @@ public class IAMController {
 		}
 		return login;
 	}
+	
+	@RequestMapping(value="/userProfileWithEmail", method= RequestMethod.GET)
+	public UserDTO getUserProfileWithEmailByUserId(HttpServletResponse response,
+			@RequestParam long userId) throws URISyntaxException {
+
+		UserDTO userDto = null;
+
+		try {
+			System.out.println(userId);
+			userDto = IAMService.getUserProfileWithEmailByUserId(userId);
+			
+				if(userDto == null) {
+					System.out.println("null");
+					response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					return null;
+				} else {
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
+		} catch (Exception e) {
+			System.out.println(e);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return null;
+		}
+		return userDto;
+	}
 
 	@PutMapping("/{id}/edit")
-    public void updateUser(@PathVariable("id") Long id, @RequestBody User user) {
+    public void updateUser(@PathVariable("id") Long id, @RequestBody UserDTO user) {
 		IAMService.updateUser(user);
     }
 }

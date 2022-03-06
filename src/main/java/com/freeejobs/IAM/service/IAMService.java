@@ -3,6 +3,8 @@ package com.freeejobs.IAM.service;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,10 @@ public class IAMService {
 
 	public IAM getIAMByEmail(String email) {
 		return iamRepository.findByEmail(email);
+	}
+	
+	public IAM getIAMByUserId(long id) {
+		return iamRepository.findByUserId(id);
 	}
 
 	public LoginDTO login(LoginDTO loginDTO) {
@@ -140,20 +146,51 @@ public class IAMService {
 			return IAMConstants.LOGIN.STATUS_FAIL;
 		}
 	}
+	
+	public UserDTO getUserProfileWithEmailByUserId(long userId) {
+		
+		UserDTO userDto = new UserDTO();
+		User userProfile = null;
+		IAM iamProfile = null;
 
-	public User updateUser(User user) {
-		User oldUser = userRepository.findById(user.getId());
-		user.setFirstName(user.getFirstName());
-		user.setLastName(user.getLastName());
-		user.setContactNo(user.getContactNo());
-		user.setGender(oldUser.getGender());
-		user.setDOB(user.getDOB());
-		user.setProfessionalTitle(user.getProfessionalTitle());
-		user.setAboutMe(user.getAboutMe());
-		user.setAboutMeClient(user.getAboutMeClient());
-		user.setSkills(user.getSkills());
-		user.setDateCreated(oldUser.getDateCreated());
+		userProfile = getUserByUserId(userId);
+		iamProfile = getIAMByUserId(userId);
+		
+		if(userProfile != null && iamProfile != null) {
+			userDto.setFirstName(userProfile.getFirstName());
+			userDto.setLastName(userProfile.getLastName());
+			userDto.setAboutMe(userProfile.getAboutMe());
+			userDto.setAboutMeClient(userProfile.getAboutMeClient());
+			userDto.setContactNo(userProfile.getContactNo());
+			userDto.setDOB(userProfile.getDOB());
+			userDto.setProfessionalTitle(userProfile.getProfessionalTitle());
+			userDto.setSkills(userProfile.getSkills());
+			userDto.setGender(userProfile.getGender());
+
+			userDto.setEmail(iamProfile.getEmail());
+		}
+		return userDto;
+	}
+
+	public User updateUser(UserDTO userDto) {
+		User user = getUserByUserId(userDto.getId());
+		user.setFirstName(userDto.getFirstName());
+		user.setLastName(userDto.getLastName());
+		user.setContactNo(userDto.getContactNo());
+//		user.setGender(userDto.getGender());
+//		user.setDOB(user.getDOB());
+		user.setProfessionalTitle(userDto.getProfessionalTitle());
+		user.setAboutMe(userDto.getAboutMe());
+		user.setAboutMeClient(userDto.getAboutMeClient());
+		user.setSkills(userDto.getSkills());
 		user.setDateUpdated(new Date());
+		
+		IAM iam = getIAMByUserId(userDto.getId());
+		iam.setEmail(userDto.getEmail());
+		iam.setDateUpdated(new Date());
+		
+		iamRepository.save(iam);
+		
 		return userRepository.save(user);
 	}
 

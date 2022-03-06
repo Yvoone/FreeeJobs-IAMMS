@@ -72,4 +72,52 @@ public class UserDTO {
 	public Date getDOB() {
 		return dob;
 	}
+
+	public void setDOB(Date dob) {
+		this.dob = dob;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public void setContactNo(String contactNo) {
+		this.contactNo = contactNo;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+
+	public void setProfessionalTitle(String professionalTitle) {
+		this.professionalTitle = professionalTitle;
+	}
+
+	public void setAboutMe(String aboutMe) {
+		this.aboutMe = aboutMe;
+	}
+
+	public void setAboutMeClient(String aboutMeClient) {
+		this.aboutMeClient = aboutMeClient;
+	}
+
+	public void setSkills(String skills) {
+		this.skills = skills;
+	}
+
+	public void setLinkedInAcct(String linkedInAcct) {
+		this.linkedInAcct = linkedInAcct;
+	}
 }
