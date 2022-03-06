@@ -157,6 +157,7 @@ public class IAMService {
 		iamProfile = getIAMByUserId(userId);
 		
 		if(userProfile != null && iamProfile != null) {
+			userDto.setId(userProfile.getId());
 			userDto.setFirstName(userProfile.getFirstName());
 			userDto.setLastName(userProfile.getLastName());
 			userDto.setAboutMe(userProfile.getAboutMe());
@@ -166,6 +167,7 @@ public class IAMService {
 			userDto.setProfessionalTitle(userProfile.getProfessionalTitle());
 			userDto.setSkills(userProfile.getSkills());
 			userDto.setGender(userProfile.getGender());
+			userDto.setLinkedInAcct(userProfile.getLinkedInAcct());
 
 			userDto.setEmail(iamProfile.getEmail());
 		}
