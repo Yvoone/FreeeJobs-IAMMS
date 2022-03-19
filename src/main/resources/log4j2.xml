@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<Properties>
+        <Property name="basePath">./src/main/resources/logs</Property>
+    </Properties>
+    <Appenders>
+    	<RollingFile name="logfile" filename="${basePath}/freeejobs_iam.log" append="true"
+            filepattern="%d{YYYYMMddHHmmss}-freeejobs.log">
+            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="25 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="20" />
+        </RollingFile>
+        <RollingFile name="errorlogfile" filename="${basePath}/freeejobs_iam_error.log" append="true"
+            filepattern="%d{YYYYMMddHHmmss}-freeejobs.log">
+            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="25 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="20" />
+        </RollingFile>
+        <RollingFile name="JpaLogFile" filename="${basePath}/freeejobs_iam_jpa.log" append="true"
+            filepattern="%d{YYYYMMddHHmmss}-freeejobs.log">
+            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="25 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="20" />
+        </RollingFile>
+        
+        <Console name="stdout" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p %m%n"/>
+        </Console>
+    </Appenders>
+    
+    <Loggers>
+		<logger name="org.springframwork" level="error" additivity="false">
+    		<AppenderRef ref="logfile"/>
+    	</logger>
+    	<logger name="org.springframework.orm.jpa" additivity="false">
+		   <level value="DEBUG"/>
+		   <appender-ref ref="JpaLogFile"/>
+		</logger>
+		<logger name="org.springframework.jdbc.datasource" additivity="false">
+		   <level value="DEBUG"/>
+		   <appender-ref ref="JpaLogFile"/>
+		</logger>
+		<logger name="org.hibernate.SQL" additivity="false">
+		   <level value="DEBUG"/>
+		   <appender-ref ref="JpaLogFile"/>
+		</logger>
+		
+    	<Root level="all">
+	    	<AppenderRef ref="stdout" level="all"/>
+	    	<AppenderRef ref="logfile" level="debug"/>
+	    	<AppenderRef ref="errorlogfile" level="error"/>
+	    </Root>
+    </Loggers>
+    
+</Configuration>

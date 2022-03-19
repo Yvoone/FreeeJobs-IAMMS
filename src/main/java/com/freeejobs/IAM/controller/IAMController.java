@@ -2,10 +2,15 @@ package com.freeejobs.IAM.controller;
 
 import java.io.Console;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -31,6 +36,8 @@ import com.freeejobs.IAM.dto.LoginDTO;
 @CrossOrigin
 public class IAMController {
 
+	private static Logger LOGGER = LogManager.getLogger(IAMController.class);
+	
 	@Autowired
 	private IAMService IAMService;
 
@@ -43,25 +50,28 @@ public class IAMController {
 		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
 		
 		try {
-			System.out.println(userId);
-			userProfile = IAMService.getUserByUserId(userId);
-				if(userProfile == null) {
-					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					//return null;
-					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user Profile.");
-					
-				} else {
-					//response.setStatus(HttpServletResponse.SC_OK);
-					responseStatus = new Status(Status.Type.OK, "Successfully get user Profile.");
-				}
-			
-				
-			
+			if(!IAMService.isId(String.valueOf(userId))){
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user Profile. Invalid user Id.");
+				LOGGER.error(responseStatus.toString());
+			}else {
+				System.out.println(userId);
+				userProfile = IAMService.getUserByUserId(userId);
+					if(userProfile == null) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user Profile.");
+						
+					} else {
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully get user Profile.");
+					}
+			}
 		} catch (Exception e) {
 			System.out.println(e);
 //			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 //			return null;
 			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user Profile, Exception.");
+			LOGGER.error(e.getMessage(), e);
 		}
 		resp.setData(userProfile);
 		resp.setStatus(responseStatus);
@@ -75,27 +85,54 @@ public class IAMController {
 		IAM iam = null;
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
+		List<String> errors = new ArrayList<String>();
 		
 		try {
-			System.out.println(userDTO.getFirstName());
-			iam = IAMService.registerUser(userDTO);
-				if(iam == null) {
-					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					//return null;
-					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register User.");
-					
-				} else {
-					//response.setStatus(HttpServletResponse.SC_OK);
-					responseStatus = new Status(Status.Type.OK, "Successfully register User.");
-				}
+			//TODO decrypt password
+			if(!IAMService.isPassword(userDTO.getPassword())) {
+				errors.add("Invalid password value");
+			}
+			if(StringUtils.isBlank(userDTO.getFirstName())) {
+				errors.add("Invalid first name value");
+			}
+			if(StringUtils.isBlank(userDTO.getLastName())) {
+				errors.add("Invalid first name value");
+			}
+			if(!IAMService.isContactNo(userDTO.getContactNo())) {
+				errors.add("Invalid contactNo value");
+			}
+			if(!IAMService.isEmailAdd(userDTO.getEmail())) {
+				errors.add("Invalid email value");
+			}
+			if(!IAMService.isGender(userDTO.getGender())) {
+				errors.add("Invalid gender value");
+			}
+			//professional title, aboutme, aboutmeclient, skills not required this dont need check
 			
-				
-			
+			if(errors.isEmpty()) {
+				System.out.println(userDTO.getFirstName());
+				iam = IAMService.registerUser(userDTO);
+					if(iam == null) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register User.");
+						
+					} else {
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully register User.");
+					}
+			}else {
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register User. Invalid Register Object.");
+				String listOfErrors = errors.stream().map(Object::toString)
+                        .collect(Collectors.joining(", "));
+				LOGGER.error(responseStatus.toString()+" "+listOfErrors);
+			}
 		} catch (Exception e) {
 			System.out.println(e);
 //			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 //			return null;
 			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register User, Exception.");
+			LOGGER.error(e.getMessage(), e);
 		}
 		resp.setData(iam);
 		resp.setStatus(responseStatus);
@@ -109,27 +146,54 @@ public class IAMController {
 		IAM iam = null;
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
+		List<String> errors = new ArrayList<String>();
 		
 		try {
-			System.out.println(userDTO.getFirstName());
-			iam = IAMService.registerAdmin(userDTO);
-				if(iam == null) {
-					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					//return null;
-					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register Admin.");
-					
-				} else {
-					//response.setStatus(HttpServletResponse.SC_OK);
-					responseStatus = new Status(Status.Type.OK, "Successfully register Admin.");
-				}
+			//TODO decrypt password
+			if(!IAMService.isPassword(userDTO.getPassword())) {
+				errors.add("Invalid password value");
+			}
+			if(StringUtils.isBlank(userDTO.getFirstName())) {
+				errors.add("Invalid first name value");
+			}
+			if(StringUtils.isBlank(userDTO.getLastName())) {
+				errors.add("Invalid first name value");
+			}
+			if(!IAMService.isContactNo(userDTO.getContactNo())) {
+				errors.add("Invalid contactNo value");
+			}
+			if(!IAMService.isEmailAdd(userDTO.getEmail())) {
+				errors.add("Invalid email value");
+			}
+			if(!IAMService.isGender(userDTO.getGender())) {
+				errors.add("Invalid gender value");
+			}
+			//professional title, aboutme, aboutmeclient, skills not required this dont need check
 			
-				
-			
+			if(errors.isEmpty()) {
+				System.out.println(userDTO.getFirstName());
+				iam = IAMService.registerAdmin(userDTO);
+					if(iam == null) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register Admin.");
+						
+					} else {
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully register Admin.");
+					}
+			}else {
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register Admin. Invalid Register Object.");
+				String listOfErrors = errors.stream().map(Object::toString)
+                        .collect(Collectors.joining(", "));
+				LOGGER.error(responseStatus.toString()+" "+listOfErrors);
+			}
 		} catch (Exception e) {
 			System.out.println(e);
 //			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 //			return null;
 			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register Admin, Exception.");
+			LOGGER.error(e.getMessage(), e);
 		}
 		resp.setData(iam);
 		resp.setStatus(responseStatus);
@@ -143,29 +207,42 @@ public class IAMController {
 		LoginDTO login = null;
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
-		
+		List<String> errors = new ArrayList<String>();
 		try {
-			System.out.println(loginDTO.getEmail());
-			login = IAMService.login(loginDTO);
-				if(login.getLoginStatus()!=IAMConstants.LOGIN.STATUS_SUCCESS) {
-					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					//return null;
-					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login, status: "+login.getLoginStatus());
-					
-				} else {
+			//TODO decrypt password
+			if(!IAMService.isPassword(String.valueOf(loginDTO.getPassword()))) {
+				errors.add("Invalid password value");
+			}
+			if(!IAMService.isEmailAdd(loginDTO.getEmail())) {
+				errors.add("Invalid email value");
+			}
+			
+			if(errors.isEmpty()) {
+				System.out.println(loginDTO.getEmail());
+				login = IAMService.login(loginDTO);
+					if(login.getLoginStatus()!=IAMConstants.LOGIN.STATUS_SUCCESS) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login, status: "+login.getLoginStatus());
+						
+					} else {
 
-					System.out.println(login.getPassword());
-					//response.setStatus(HttpServletResponse.SC_OK);
-					responseStatus = new Status(Status.Type.OK, "Successfully logged in.");
-				}
-			
-				
-			
+						System.out.println(login.getPassword());
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully logged in.");
+					}
+			}else {
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login. Invalid login Object.");
+				String listOfErrors = errors.stream().map(Object::toString)
+                        .collect(Collectors.joining(", "));
+				LOGGER.error(responseStatus.toString()+" "+listOfErrors);
+			}	
 		} catch (Exception e) {
 			System.out.println(e);
 //			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 //			return null;
 			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login, Exception.");
+			LOGGER.error(e.getMessage(), e);
 		}
 		resp.setData(login);
 		resp.setStatus(responseStatus);
@@ -181,26 +258,30 @@ public class IAMController {
 		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
 		
 		try {
-			System.out.println(userId);
-			userDto = IAMService.getUserProfileWithEmailByUserId(userId);
-			
-				if(userDto == null) {
-					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					//return null;
-					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login.");
-					
-				} else {
-					//response.setStatus(HttpServletResponse.SC_OK);
-					responseStatus = new Status(Status.Type.OK, "Successfully logged in.");
-				}
-			
+			if(!IAMService.isId(String.valueOf(userId))){
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user Profile with Email. Invalid user Id.");
+				LOGGER.error(responseStatus.toString());
+			}else {
+				System.out.println(userId);
+				userDto = IAMService.getUserProfileWithEmailByUserId(userId);
 				
+					if(userDto == null) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user Profile with Email.");
+						
+					} else {
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully get user Profile with Email.");
+					}
+			}	
 			
 		} catch (Exception e) {
 			System.out.println(e);
 //			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 //			return null;
-			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login, Exception.");
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user Profile with Email, Exception.");
+			LOGGER.error(e.getMessage(), e);
 		}
 		resp.setData(userDto);
 		resp.setStatus(responseStatus);
@@ -212,28 +293,55 @@ public class IAMController {
 		User updateUser = null;
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
+		List<String> errors = new ArrayList<String>();
 		
 		try {
-			System.out.println(id);
-			updateUser = IAMService.updateUser(user);
+			if(!IAMService.isId(String.valueOf(user.getId()))) {
+				errors.add("Invalid id value");
+			}
+			//wont check for pwd
+			if(StringUtils.isBlank(user.getFirstName())) {
+				errors.add("Invalid first name value");
+			}
+			if(StringUtils.isBlank(user.getLastName())) {
+				errors.add("Invalid first name value");
+			}
+			if(!IAMService.isContactNo(user.getContactNo())) {
+				errors.add("Invalid contactNo value");
+			}
+			if(!IAMService.isEmailAdd(user.getEmail())) {
+				errors.add("Invalid email value");
+			}
+//			if(!IAMService.isGender(user.getGender())) {
+//				errors.add("Invalid gender value");
+//			}
+			//professional title, aboutme, aboutmeclient, skills not required this dont need check
 			
-				if(updateUser == null) {
-					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					//return null;
-					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to update profile.");
-					
-				} else {
-					//response.setStatus(HttpServletResponse.SC_OK);
-					responseStatus = new Status(Status.Type.OK, "Successfully update profile.");
-				}
-			
+			if(errors.isEmpty()) {
+				System.out.println(id);
+				updateUser = IAMService.updateUser(user);
 				
-			
+					if(updateUser == null) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to update profile.");
+						
+					} else {
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully update profile.");
+					}
+			}else {
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to update profile. Invalid Register Object.");
+				String listOfErrors = errors.stream().map(Object::toString)
+                        .collect(Collectors.joining(", "));
+				LOGGER.error(responseStatus.toString()+" "+listOfErrors);
+			}
 		} catch (Exception e) {
 			System.out.println(e);
 //			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 //			return null;
 			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to update profile, Exception.");
+			LOGGER.error(e.getMessage(), e);
 		}
 		resp.setData(updateUser);
 		resp.setStatus(responseStatus);

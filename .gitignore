@@ -72,3 +72,4 @@ yarn-error.log
 *.launch
 .settings/
 *.sublime-workspace
+src/main/resources/logs/

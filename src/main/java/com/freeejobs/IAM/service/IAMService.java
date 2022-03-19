@@ -195,5 +195,28 @@ public class IAMService {
 		
 		return userRepository.save(user);
 	}
+	public boolean isId(String id) {
+		return String.valueOf(id).matches("[0-9]+");
+	}
+	public boolean isPassword(String pwd) {
+		String regexPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{7,}$";
+		return String.valueOf(pwd).matches(regexPattern);
+	}
+	public boolean isContactNo(String contactNo) {
+		String regexPattern = "^(?:\\\\+65)?[689][0-9]{7}$";
+		return String.valueOf(contactNo).matches(regexPattern);
+	}
+	public boolean isEmailAdd(String email) {
+		String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@" 
+		        + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
+		return String.valueOf(email).matches(regexPattern);
+	}
+	public boolean isGender(String gender) {
+		if(gender.equalsIgnoreCase("FEMALE")||gender.equalsIgnoreCase("MALE")) {
+			return true;
+		}else {
+			return false;
+		}
+	}
 
 }
