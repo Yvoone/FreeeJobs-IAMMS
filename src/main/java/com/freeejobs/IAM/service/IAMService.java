@@ -3,6 +3,8 @@ package com.freeejobs.IAM.service;
 import java.util.Date;
 import java.util.List;
 
+import javax.crypto.Cipher;
+import javax.security.cert.CertificateException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
@@ -17,7 +19,24 @@ import com.freeejobs.IAM.repository.UserRepository;
 import com.freeejobs.IAM.dto.UserDTO;
 import com.freeejobs.IAM.dto.LoginDTO;
 import com.freeejobs.IAM.constants.IAMConstants;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.KeyFactory;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableEntryException;
+import java.security.UnrecoverableKeyException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Calendar;
+import org.apache.commons.io.FileUtils;
 
 @Service
 public class IAMService {
@@ -42,7 +61,7 @@ public class IAMService {
 		return iamRepository.findByUserId(id);
 	}
 
-	public LoginDTO login(LoginDTO loginDTO) {
+	public LoginDTO login(LoginDTO loginDTO) throws Exception {
 
 		IAM userCred = getIAMByEmail(loginDTO.getEmail());
 		Calendar currCal = Calendar.getInstance();
@@ -55,7 +74,8 @@ public class IAMService {
 			loginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_LOCKED);
 		}
 		else {
-			loginDTO.setLoginStatus(getLoginStatus(loginDTO.getPassword(), userCred.getPassword()));
+			String inputPwd = RSADecrypt(loginDTO.getPassword());
+			loginDTO.setLoginStatus(getLoginStatus(inputPwd, userCred.getPassword()));
 		}
 
 		if(loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_SUCCESS) {
@@ -86,7 +106,8 @@ public class IAMService {
 
 	}
 
-	public IAM registerUser(UserDTO userDTO) {
+	public IAM registerUser(UserDTO userDTO) throws Exception {
+		userDTO.setPassword(RSADecrypt(userDTO.getPassword()));
 
 		return addUser(userDTO, IAMConstants.USER.USER_ROLE_REGULAR);
 
@@ -218,5 +239,18 @@ public class IAMService {
 			return false;
 		}
 	}
+	
+	//Encryption
+	public String RSADecrypt(String plainText)throws Exception{
+		KeyFactory keyFactory=KeyFactory.getInstance("RSA");
+		//to get from s3 bucket later on
+		PrivateKey privKey =keyFactory.generatePrivate(new PKCS8EncodedKeySpec(FileUtils.readFileToByteArray(new File("/Users/yvonnetia/Documents/GitHub/FreeeJobs-IAMMS/src/main/resources/keys/private.key"))));
+    	
+    	Cipher cipher = Cipher.getInstance("RSA");
+ 
+        cipher.init(Cipher.DECRYPT_MODE, privKey);
+ 
+        return new String(cipher.doFinal(Base64.getDecoder().decode(plainText.getBytes())));
+        }
 
 }
