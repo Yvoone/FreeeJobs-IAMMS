@@ -4,6 +4,9 @@ import java.util.Date;
 import java.util.List;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.security.cert.CertificateException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -24,12 +27,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.SecureRandom;
 import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -40,6 +46,8 @@ import org.apache.commons.io.FileUtils;
 
 @Service
 public class IAMService {
+	
+	private final String keyFileLocation="location...";
 
 	private static final Logger LOGGER = LogManager.getLogger(IAMService.class);
 
@@ -75,7 +83,8 @@ public class IAMService {
 		}
 		else {
 			String inputPwd = RSADecrypt(loginDTO.getPassword());
-			loginDTO.setLoginStatus(getLoginStatus(inputPwd, userCred.getPassword()));
+			String dbPwd = AESDecryption(userCred.getPassword());
+			loginDTO.setLoginStatus(getLoginStatus(inputPwd, dbPwd));
 		}
 
 		if(loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_SUCCESS) {
@@ -107,14 +116,14 @@ public class IAMService {
 	}
 
 	public IAM registerUser(UserDTO userDTO) throws Exception {
-		userDTO.setPassword(RSADecrypt(userDTO.getPassword()));
-
+		//userDTO.setPassword(RSADecrypt(userDTO.getPassword()));
+		userDTO.setPassword(AESEncryption(RSADecrypt(userDTO.getPassword())));
 		return addUser(userDTO, IAMConstants.USER.USER_ROLE_REGULAR);
 
 	}
 
-	public IAM registerAdmin(UserDTO userDTO) {
-
+	public IAM registerAdmin(UserDTO userDTO) throws Exception {
+		userDTO.setPassword(AESEncryption(RSADecrypt(userDTO.getPassword())));
 		return addUser(userDTO, IAMConstants.USER.USER_ROLE_ADMIN);
 	}
 
@@ -240,17 +249,140 @@ public class IAMService {
 		}
 	}
 	
-	//Encryption
+	//Decryption
 	public String RSADecrypt(String plainText)throws Exception{
 		KeyFactory keyFactory=KeyFactory.getInstance("RSA");
 		//to get from s3 bucket later on
-		PrivateKey privKey =keyFactory.generatePrivate(new PKCS8EncodedKeySpec(FileUtils.readFileToByteArray(new File("/Users/yvonnetia/Documents/GitHub/FreeeJobs-IAMMS/src/main/resources/keys/private.key"))));
+		PrivateKey privKey =keyFactory.generatePrivate(new PKCS8EncodedKeySpec(FileUtils.readFileToByteArray(new File(keyFileLocation+"private.key"))));
     	
     	Cipher cipher = Cipher.getInstance("RSA");
  
         cipher.init(Cipher.DECRYPT_MODE, privKey);
  
         return new String(cipher.doFinal(Base64.getDecoder().decode(plainText.getBytes())));
-        }
+     }
+	
+	public String AESEncryption(String plainText)
+			throws Exception {
+		
+		SecretKey secretKey = getKeyFromFile();
+		
+		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+
+		byte[] IV = generateIv();
+
+		cipher.init(Cipher.ENCRYPT_MODE, secretKey,new IvParameterSpec(IV));
+
+		byte[] encryptedByte = cipher.doFinal(plainText.getBytes());
+		
+		byte[] cipherTextWithIv = ByteBuffer.allocate(IV.length + encryptedByte.length)
+                .put(IV)
+                .put(encryptedByte)
+                .array();
+		
+		Base64.Encoder encoder = Base64.getEncoder();
+		
+		String encryptedText = encoder.encodeToString(cipherTextWithIv);
+		
+		return encryptedText;
+	}
+
+	public String AESDecryption(String encryptedText)
+			throws Exception {
+		SecretKey secretKey = getKeyFromFile();
+    	
+		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+		
+		Base64.Decoder decoder = Base64.getDecoder();
+		
+		byte[] encryptedTextByte = decoder.decode(encryptedText);
+
+		ByteBuffer bb = ByteBuffer.wrap(encryptedTextByte);
+
+        byte[] IV = new byte[16];
+        bb.get(IV);
+
+        byte[] cipherText = new byte[bb.remaining()];
+        bb.get(cipherText);
+        
+//		IvParameterSpec ivParameterSpec = generateIv();
+
+		cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(IV));
+		
+		
+
+		byte[] result = cipher.doFinal(cipherText);
+
+		return new String(result);
+	}
+	
+	public byte[] generateIv() {
+	    byte[] iv = new byte[16];
+	    new SecureRandom().nextBytes(iv);
+	    return iv;
+	}
+	
+	private SecretKey getKeyFromFile() throws Exception {
+		
+		File file =new File(keyFileLocation+"FreeeJobsKeyStore.jceks");
+		
+		byte[] secretKeyInBytes = new byte[(int) file.length()];
+		
+		String pwd = getImageHash();
+
+		char[] pwdArray = pwd.toCharArray();
+		
+		KeyStore ks1 = KeyStore.getInstance("JCEKS");
+	    ks1.load(new FileInputStream(file), pwdArray);
+	    Key ssoSigningKey = ks1.getKey("secretKey", pwdArray);
+	    //get AES key extracted from keystore in bytes and string
+	    secretKeyInBytes = ssoSigningKey.getEncoded();
+		SecretKey secretKey = new SecretKeySpec(secretKeyInBytes, 0, secretKeyInBytes.length, "AES");
+		return secretKey;		
+	}
+	
+	public String getImageHash() {
+	  	String hashedFile ="";
+	  	try {
+	  		//hash the png
+				byte[] fileContent = FileUtils.readFileToByteArray(new File(keyFileLocation+"branding-iss.png"));
+				MessageDigest digest = MessageDigest.getInstance("SHA-512");
+				 
+				byte[] inputBytes = fileContent;
+				 
+				byte[] hashBytes = digest.digest(inputBytes);
+				
+		        //get salt - first 3 char of hashed png
+		        String myField = new String(hashBytes, 0, 3);
+		        System.out.println(myField);
+		        
+		        //append salt to back of hashed png
+		        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		        outputStream.write(hashBytes);
+		        outputStream.write(myField.getBytes());
+		        
+		        //hash the concatenated values
+		        byte[] hashsaltedHashBytes = digest.digest(outputStream.toByteArray( ));
+		        
+		        //get string of salted hash file - convert byte array to hex string
+				StringBuffer stringBuffer = new StringBuffer();
+		        for (int i = 0; i < hashsaltedHashBytes.length; i++) {
+		            stringBuffer.append(Integer.toString((hashsaltedHashBytes[i] & 0xff) + 0x100, 16)
+		                    .substring(1));
+		        }
+		        hashedFile = stringBuffer.toString();
+		        
+		        System.out.println(hashedFile);
+		        
+		        
+				
+			} catch (IOException | NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+	  	return hashedFile;
+	}	
+	
 
 }
