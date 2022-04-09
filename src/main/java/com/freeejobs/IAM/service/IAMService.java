@@ -104,13 +104,17 @@ public class IAMService {
 			loginDTO.setUserRole(userCred.getUserRole());
 		}
 		else if (loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_FAIL) {
-			int failedAttempt = userCred.getFailedAttempt() + 1;
-			userCred.setFailedAttempt(failedAttempt);
+			if(userCred!=null) {
+				int failedAttempt = userCred.getFailedAttempt() + 1;
+				userCred.setFailedAttempt(failedAttempt);
+			}
+			
 		}
-
-		userCred.setDateUpdated(currDate);
-		iamRepository.save(userCred);
-
+		
+		if(userCred!=null) {
+			userCred.setDateUpdated(currDate);
+			iamRepository.save(userCred);
+		}
 		return loginDTO;
 
 	}
@@ -233,7 +237,7 @@ public class IAMService {
 		return String.valueOf(pwd).matches(regexPattern);
 	}
 	public boolean isContactNo(String contactNo) {
-		String regexPattern = "^(?:\\\\+65)?[689][0-9]{7}$";
+		String regexPattern = "^(?:\\+65)?[689][0-9]{7}$";
 		return String.valueOf(contactNo).matches(regexPattern);
 	}
 	public boolean isEmailAdd(String email) {
@@ -255,7 +259,7 @@ public class IAMService {
 		//to get from s3 bucket later on
 		PrivateKey privKey =keyFactory.generatePrivate(new PKCS8EncodedKeySpec(FileUtils.readFileToByteArray(new File(keyFileLocation+"private.key"))));
     	
-    	Cipher cipher = Cipher.getInstance("RSA");
+    	Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
  
         cipher.init(Cipher.DECRYPT_MODE, privKey);
  
