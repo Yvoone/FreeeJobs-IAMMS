@@ -124,5 +124,12 @@ public class IAM {
 		this.failedAttempt = failedAttempt;
 	}
 
+	@Override
+	public String toString() {
+		return "IAM [password=" + password + ", email=" + email + ", userId=" + userId + ", userRole=" + userRole
+				+ ", failedAttempt=" + failedAttempt + ", dateCreated=" + dateCreated + ", dateUpdated=" + dateUpdated
+				+ ", sessionTimeout=" + sessionTimeout + "]";
+	}
+
 
 }

@@ -16,11 +16,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.freeejobs.IAM.model.IAM;
+import com.freeejobs.IAM.model.IAMAudit;
+import com.freeejobs.IAM.repository.IAMAuditRepository;
 import com.freeejobs.IAM.repository.IAMRepository;
+import com.freeejobs.IAM.repository.UserAuditRepository;
 import com.freeejobs.IAM.model.User;
+import com.freeejobs.IAM.model.UserAudit;
 import com.freeejobs.IAM.repository.UserRepository;
 import com.freeejobs.IAM.dto.UserDTO;
 import com.freeejobs.IAM.dto.LoginDTO;
+import com.freeejobs.IAM.constants.AuditEnum;
 import com.freeejobs.IAM.constants.IAMConstants;
 
 import java.io.ByteArrayOutputStream;
@@ -56,6 +61,12 @@ public class IAMService {
 
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private IAMAuditRepository iamAuditRepository;
+
+	@Autowired
+	private UserAuditRepository userAuditRepository;
 
 	public User getUserByUserId(long id) {
 		return userRepository.findById(id);
@@ -114,6 +125,7 @@ public class IAMService {
 		if(userCred!=null) {
 			userCred.setDateUpdated(currDate);
 			iamRepository.save(userCred);
+			insertAudit(userCred, AuditEnum.UPDATE.getCode());
 		}
 		return loginDTO;
 
@@ -147,8 +159,9 @@ public class IAMService {
 		user.setDateCreated(currDate);
 		user.setDateUpdated(currDate);
 
-
-		long userId = registerUserProfile(user).getId();
+		User addedUser = registerUserProfile(user);
+		long userId = addedUser.getId();
+		insertAudit(addedUser, AuditEnum.INSERT.getCode());
 
 		IAM iam = new IAM();
 
@@ -161,7 +174,9 @@ public class IAMService {
 		iam.setDateUpdated(currDate);
 
 
-		return registerUserCredential(iam);
+		IAM addedIAM = registerUserCredential(iam);
+		insertAudit(addedIAM, AuditEnum.INSERT.getCode());
+		return addedIAM;
 	}
 
 	private User registerUserProfile(User user) {
@@ -225,9 +240,12 @@ public class IAMService {
 		iam.setEmail(userDto.getEmail());
 		iam.setDateUpdated(new Date());
 		
-		iamRepository.save(iam);
+		IAM updatedIAM = iamRepository.save(iam);
+		insertAudit(updatedIAM, AuditEnum.UPDATE.getCode());
 		
-		return userRepository.save(user);
+		User updatedUser = userRepository.save(user);
+		insertAudit(updatedUser, AuditEnum.UPDATE.getCode());
+		return updatedUser;
 	}
 	public boolean isId(String id) {
 		return String.valueOf(id).matches("[0-9]+");
@@ -386,7 +404,27 @@ public class IAMService {
 			}
 			
 	  	return hashedFile;
-	}	
+	}
+	
+	public IAMAudit insertAudit(IAM iam, String opsType) {
+		IAMAudit newAuditEntry = new IAMAudit();
+		newAuditEntry.setAuditData(iam.toString());
+		newAuditEntry.setOpsType(opsType);
+		newAuditEntry.setDateCreated(new Date());
+		newAuditEntry.setCreatedBy(String.valueOf(iam.getUserId()));
+		
+		return iamAuditRepository.save(newAuditEntry);
+	}
+	
+	public UserAudit insertAudit(User user, String opsType) {
+		UserAudit newAuditEntry = new UserAudit();
+		newAuditEntry.setAuditData(user.toString());
+		newAuditEntry.setOpsType(opsType);
+		newAuditEntry.setDateCreated(new Date());
+		newAuditEntry.setCreatedBy(String.valueOf(user.getId()));
+		
+		return userAuditRepository.save(newAuditEntry);
+	}
 	
 
 }

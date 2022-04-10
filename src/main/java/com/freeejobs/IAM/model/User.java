@@ -167,6 +167,14 @@ public class User {
 		this.dateUpdated = dateUpdated;
 	}
 
+	@Override
+	public String toString() {
+		return "User [firstName=" + firstName + ", lastName=" + lastName + ", contactNo=" + contactNo + ", gender="
+				+ gender + ", professionalTitle=" + professionalTitle + ", aboutMe=" + aboutMe + ", aboutMeClient="
+				+ aboutMeClient + ", skills=" + skills + ", linkedInAcct=" + linkedInAcct + ", dob=" + dob
+				+ ", dateCreated=" + dateCreated + ", dateUpdated=" + dateUpdated + "]";
+	}
+
 
 
 }
