@@ -13,7 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.freeejobs.IAM.model.IAM;
 import com.freeejobs.IAM.model.IAMAudit;
@@ -25,12 +27,15 @@ import com.freeejobs.IAM.model.UserAudit;
 import com.freeejobs.IAM.repository.UserRepository;
 import com.freeejobs.IAM.dto.UserDTO;
 import com.freeejobs.IAM.dto.LoginDTO;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.freeejobs.IAM.constants.AuditEnum;
 import com.freeejobs.IAM.constants.IAMConstants;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.Key;
@@ -67,6 +72,12 @@ public class IAMService {
 
 	@Autowired
 	private UserAuditRepository userAuditRepository;
+	
+	@Value("${application.bucket.name}")
+    private String bucketName;
+	
+	@Autowired
+    private AmazonS3 s3Client;
 
 	public User getUserByUserId(long id) {
 		return userRepository.findById(id);
@@ -429,6 +440,29 @@ public class IAMService {
 		
 		return userAuditRepository.save(newAuditEntry);
 	}
+	
+	public String uploadFile(MultipartFile file) {
+        File fileObj = convertMultiPartFileToFile(file);
+//        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        s3Client.putObject(new PutObjectRequest(bucketName, file.getOriginalFilename(), fileObj));
+        fileObj.delete();
+        return "File uploaded : " + file.getOriginalFilename();
+    }
+
+//    public String deleteFile(String fileName) {
+//        s3Client.deleteObject(bucketName, fileName);
+//        return fileName + " removed ...";
+//    }
+
+    private File convertMultiPartFileToFile(MultipartFile file) {
+        File convertedFile = new File(file.getOriginalFilename());
+        try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
+            fos.write(file.getBytes());
+        } catch (IOException e) {
+//            log.error("Error converting multipartFile to file", e);
+        }
+        return convertedFile;
+    }
 	
 
 }

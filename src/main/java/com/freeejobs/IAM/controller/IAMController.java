@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.freeejobs.IAM.model.IAM;
 import com.freeejobs.IAM.model.User;
@@ -347,4 +348,20 @@ public class IAMController {
 		resp.setStatus(responseStatus);
 		return resp;
     }
+	
+	@RequestMapping(value="/upload", method= RequestMethod.POST)
+    public APIResponse uploadFile(@RequestParam(value = "imageFile") MultipartFile file) {
+        String uploadstatus = IAMService.uploadFile(file);
+        APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "Successfully upload image.");
+		
+		resp.setData(uploadstatus);
+		resp.setStatus(responseStatus);
+		return resp;
+    }
+
+//    @DeleteMapping("/delete/{fileName}")
+//    public ResponseEntity<String> deleteFile(@PathVariable String fileName) {
+//        return new ResponseEntity<>(productService.deleteFile(fileName), HttpStatus.OK);
+//    }
 }
