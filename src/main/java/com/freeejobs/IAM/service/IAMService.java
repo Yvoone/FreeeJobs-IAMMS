@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -52,12 +53,14 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
+import java.net.URL;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 @Service
 public class IAMService {
 	
-	private final String keyFileLocation="C:\\Users\\china\\Documents\\GitHub\\FreeeJobs-IAMMS\\src\\main\\resources\\keys\\";
+	private final String keyFileLocation="https://freeejobs.s3.ap-southeast-1.amazonaws.com/keys/";
 
 	private static final Logger LOGGER = LogManager.getLogger(IAMService.class);
 
@@ -290,13 +293,25 @@ public class IAMService {
 	public String RSADecrypt(String plainText)throws Exception{
 		KeyFactory keyFactory=KeyFactory.getInstance("RSA");
 		//to get from s3 bucket later on
-		PrivateKey privKey =keyFactory.generatePrivate(new PKCS8EncodedKeySpec(FileUtils.readFileToByteArray(new File(keyFileLocation+"private.key"))));
-    	
-    	Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		try {
+			URL url = new URL(keyFileLocation+"private.key");
+			
+            byte[] privateKeyData = IOUtils.toByteArray(url);
+
+			PrivateKey privKey =keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyData));
+
+			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
  
-        cipher.init(Cipher.DECRYPT_MODE, privKey);
- 
-        return new String(cipher.doFinal(Base64.getDecoder().decode(plainText.getBytes())));
+        	cipher.init(Cipher.DECRYPT_MODE, privKey);
+			
+			return new String(cipher.doFinal(Base64.getDecoder().decode(plainText.getBytes())));
+		}
+		catch (IOException e) {
+            e.printStackTrace();
+
+			return "";
+        }
+		// PrivateKey privKey =keyFactory.generatePrivate(new PKCS8EncodedKeySpec(FileUtils.readFileToByteArray(new File(keyFileLocation+"private.key"))));
      }
 	
 	public String AESEncryption(String plainText)
@@ -361,16 +376,22 @@ public class IAMService {
 	
 	private SecretKey getKeyFromFile() throws Exception {
 		
-		File file =new File(keyFileLocation+"FreeeJobsKeyStore.jceks");
+		// File file =new File(keyFileLocation+"FreeeJobsKeyStore.jceks");
 		
-		byte[] secretKeyInBytes = new byte[(int) file.length()];
+		URL url = new URL(keyFileLocation+"FreeeJobsKeyStore.jceks");
+		
+		InputStream inputStream = url.openStream();
+			
+		// byte[] secretKeyInBytes = new byte[(int) file.length()];
+		byte[] secretKeyInBytes = new byte[inputStream.available()];
 		
 		String pwd = getImageHash();
 
 		char[] pwdArray = pwd.toCharArray();
 		
 		KeyStore ks1 = KeyStore.getInstance("JCEKS");
-	    ks1.load(new FileInputStream(file), pwdArray);
+		ks1.load(inputStream, pwdArray);
+	    // ks1.load(new FileInputStream(file), pwdArray);
 	    Key ssoSigningKey = ks1.getKey("secretKey", pwdArray);
 	    //get AES key extracted from keystore in bytes and string
 	    secretKeyInBytes = ssoSigningKey.getEncoded();
@@ -382,7 +403,10 @@ public class IAMService {
 	  	String hashedFile ="";
 	  	try {
 	  		//hash the png
-				byte[] fileContent = FileUtils.readFileToByteArray(new File(keyFileLocation+"branding-iss.png"));
+			  	URL url = new URL(keyFileLocation+"branding-iss.png");
+			
+            	byte[] fileContent = IOUtils.toByteArray(url);
+				// byte[] fileContent = FileUtils.readFileToByteArray(new File(keyFileLocation+"branding-iss.png"));
 				MessageDigest digest = MessageDigest.getInstance("SHA-512");
 				 
 				byte[] inputBytes = fileContent;
