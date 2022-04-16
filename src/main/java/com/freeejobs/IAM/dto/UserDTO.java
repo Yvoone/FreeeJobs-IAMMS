@@ -15,6 +15,8 @@ public class UserDTO {
 	private String aboutMeClient;
 	private String skills;
 	private String linkedInAcct;
+	private String profilePicUrl;
+	private String resumeUrl;
 	private Date dob;
 
     public long getId() {
@@ -68,6 +70,14 @@ public class UserDTO {
 	public String getLinkedInAcct() {
 		return linkedInAcct;
 	}
+	
+	public String getProfilePicUrl() {
+		return profilePicUrl;
+	}
+
+	public String getResumeUrl() {
+		return resumeUrl;
+	}
 
 	public Date getDOB() {
 		return dob;
@@ -119,5 +129,13 @@ public class UserDTO {
 
 	public void setLinkedInAcct(String linkedInAcct) {
 		this.linkedInAcct = linkedInAcct;
+	}
+
+	public void setProfilePicUrl(String profilePicUrl) {
+		this.profilePicUrl = profilePicUrl;
+	}
+
+	public void setResumeUrl(String resumeUrl) {
+		this.resumeUrl = resumeUrl;
 	}
 }

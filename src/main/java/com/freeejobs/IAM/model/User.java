@@ -39,17 +39,23 @@ public class User {
 	@Column(name = "professionalTitle")
 	private String professionalTitle;
 
-	@Column(name = "aboutMe")
+	@Column(name = "aboutMe", length=500)
 	private String aboutMe;
 
-	@Column(name = "aboutMeClient")
+	@Column(name = "aboutMeClient", length=500)
 	private String aboutMeClient;
 
-	@Column(name = "skills")
+	@Column(name = "skills", length=500)
 	private String skills;
 
 	@Column(name = "linkedInAcct")
 	private String linkedInAcct;
+	
+	@Column(name = "profilePicUrl", length=512)
+	private String profilePicUrl;
+	
+	@Column(name = "resumeUrl", length=512)
+	private String resumeUrl;
 
 	@Column(name = "dob", columnDefinition="DATETIME")
 	@Temporal(TemporalType.TIMESTAMP)
@@ -143,6 +149,22 @@ public class User {
 		this.linkedInAcct = linkedInAcct;
 	}
 
+	public String getProfilePicUrl() {
+		return profilePicUrl;
+	}
+
+	public void setProfilePicUrl(String profilePicUrl) {
+		this.profilePicUrl = profilePicUrl;
+	}
+
+	public String getResumeUrl() {
+		return resumeUrl;
+	}
+
+	public void setResumeUrl(String resumeUrl) {
+		this.resumeUrl = resumeUrl;
+	}
+
 	public Date getDOB() {
 		return dob;
 	}
@@ -171,10 +193,9 @@ public class User {
 	public String toString() {
 		return "User [firstName=" + firstName + ", lastName=" + lastName + ", contactNo=" + contactNo + ", gender="
 				+ gender + ", professionalTitle=" + professionalTitle + ", aboutMe=" + aboutMe + ", aboutMeClient="
-				+ aboutMeClient + ", skills=" + skills + ", linkedInAcct=" + linkedInAcct + ", dob=" + dob
+				+ aboutMeClient + ", skills=" + skills + ", linkedInAcct=" + linkedInAcct + ", profilePicUrl=" + profilePicUrl 
+				+ ", resumeUrl=" + resumeUrl + ", dob=" + dob
 				+ ", dateCreated=" + dateCreated + ", dateUpdated=" + dateUpdated + "]";
 	}
-
-
 
 }

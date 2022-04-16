@@ -52,7 +52,7 @@ import org.apache.commons.io.FileUtils;
 @Service
 public class IAMService {
 	
-	private final String keyFileLocation="location...";
+	private final String keyFileLocation="C:\\Users\\china\\Documents\\GitHub\\FreeeJobs-IAMMS\\src\\main\\resources\\keys\\";
 
 	private static final Logger LOGGER = LogManager.getLogger(IAMService.class);
 
@@ -217,7 +217,9 @@ public class IAMService {
 			userDto.setSkills(userProfile.getSkills());
 			userDto.setGender(userProfile.getGender());
 			userDto.setLinkedInAcct(userProfile.getLinkedInAcct());
-
+			userDto.setProfilePicUrl(userProfile.getProfilePicUrl());
+			userDto.setResumeUrl(userProfile.getResumeUrl());
+			
 			userDto.setEmail(iamProfile.getEmail());
 		}
 		return userDto;
@@ -235,6 +237,8 @@ public class IAMService {
 		user.setAboutMeClient(userDto.getAboutMeClient());
 		user.setSkills(userDto.getSkills());
 		user.setDateUpdated(new Date());
+		user.setProfilePicUrl(userDto.getProfilePicUrl());
+//		user.setResumeUrl(userDto.getResumeUrl());
 		
 		IAM iam = getIAMByUserId(userDto.getId());
 		iam.setEmail(userDto.getEmail());

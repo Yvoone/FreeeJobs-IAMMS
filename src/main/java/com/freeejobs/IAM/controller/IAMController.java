@@ -304,7 +304,7 @@ public class IAMController {
 				errors.add("Invalid first name value");
 			}
 			if(StringUtils.isBlank(user.getLastName())) {
-				errors.add("Invalid first name value");
+				errors.add("Invalid last name value");
 			}
 			if(!IAMService.isContactNo(user.getContactNo())) {
 				errors.add("Invalid contactNo value");
