@@ -13,6 +13,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 
 
 @Configuration
@@ -24,10 +28,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable().
-                authorizeRequests()
-                .antMatchers("/**").permitAll()
-                .anyRequest().authenticated();
+    	//CookieCsrfTokenRepository tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        //tokenRepository.setCookiePath("/");
+        http.httpBasic().and().csrf().ignoringAntMatchers("/iam/login","/iam/logout/**", "/register/**")
+        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
 
     }
 
