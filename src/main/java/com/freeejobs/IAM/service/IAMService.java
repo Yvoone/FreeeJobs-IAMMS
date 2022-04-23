@@ -56,11 +56,12 @@ import java.util.Calendar;
 import java.net.URL;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Service
 public class IAMService {
 	
-	private final String keyFileLocation="https://freeejobs.s3.ap-southeast-1.amazonaws.com/keys/";
+	private final String keyFileLocation="https://freeejobs.s3.ap-southeast-1.amazonaws.com/keys/macos/";
 
 	private static final Logger LOGGER = LogManager.getLogger(IAMService.class);
 
@@ -289,6 +290,10 @@ public class IAMService {
 		}
 	}
 	
+	public boolean isBlank(String value) {
+		return StringUtils.isBlank(value);
+	}
+	
 	//Decryption
 	public String RSADecrypt(String plainText)throws Exception{
 		KeyFactory keyFactory=KeyFactory.getInstance("RSA");
@@ -306,7 +311,7 @@ public class IAMService {
 			
 			return new String(cipher.doFinal(Base64.getDecoder().decode(plainText.getBytes())));
 		}
-		catch (IOException e) {
+		catch (Exception e) {
             e.printStackTrace();
 
 			return "";

@@ -93,10 +93,10 @@ public class IAMController {
 			if(!IAMService.isPassword(userDTO.getPassword())) {
 				errors.add("Invalid password value");
 			}
-			if(StringUtils.isBlank(userDTO.getFirstName())) {
+			if(IAMService.isBlank(userDTO.getFirstName())) {
 				errors.add("Invalid first name value");
 			}
-			if(StringUtils.isBlank(userDTO.getLastName())) {
+			if(IAMService.isBlank(userDTO.getLastName())) {
 				errors.add("Invalid first name value");
 			}
 			if(!IAMService.isContactNo(userDTO.getContactNo())) {
@@ -154,10 +154,10 @@ public class IAMController {
 			if(!IAMService.isPassword(userDTO.getPassword())) {
 				errors.add("Invalid password value");
 			}
-			if(StringUtils.isBlank(userDTO.getFirstName())) {
+			if(IAMService.isBlank(userDTO.getFirstName())) {
 				errors.add("Invalid first name value");
 			}
-			if(StringUtils.isBlank(userDTO.getLastName())) {
+			if(IAMService.isBlank(userDTO.getLastName())) {
 				errors.add("Invalid first name value");
 			}
 			if(!IAMService.isContactNo(userDTO.getContactNo())) {
@@ -301,10 +301,10 @@ public class IAMController {
 				errors.add("Invalid id value");
 			}
 			//wont check for pwd
-			if(StringUtils.isBlank(user.getFirstName())) {
+			if(IAMService.isBlank(user.getFirstName())) {
 				errors.add("Invalid first name value");
 			}
-			if(StringUtils.isBlank(user.getLastName())) {
+			if(IAMService.isBlank(user.getLastName())) {
 				errors.add("Invalid last name value");
 			}
 			if(!IAMService.isContactNo(user.getContactNo())) {
