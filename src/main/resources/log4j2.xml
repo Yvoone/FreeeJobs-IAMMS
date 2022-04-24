@@ -4,6 +4,26 @@
         <Property name="basePath">./src/main/resources/logs</Property>
     </Properties>
     <Appenders>
+	    <!-- <Log4j2Appender name="errorlogfileS3">
+	      <PatternLayout pattern="%d{HH:mm:ss,SSS} [%t] %-5p %c{36} - %m%n"/>
+	      <verbose>false</verbose>
+	      <stagingBufferSize>500</stagingBufferSize>
+	      	<s3Bucket>freeejobslogs</s3Bucket>
+	        <s3Path>freeejobsIAM/error/</s3Path>
+	        <s3Region>ap-southeast-1</s3Region>
+	      	<s3AwsKey>AKIA3O4KCDUCER454CXQ</s3AwsKey>
+	      	<s3AwsSecret>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</s3AwsSecret>
+	    </Log4j2Appender>
+	    <Log4j2Appender name="JPAlogfileS3">
+	      <PatternLayout pattern="%d{HH:mm:ss,SSS} [%t] %-5p %c{36} - %m%n"/>
+	      <verbose>false</verbose>
+	      <stagingBufferSize>500</stagingBufferSize>
+	      	<s3Bucket>freeejobslogs</s3Bucket>
+	        <s3Path>freeejobsIAM/jpa/</s3Path>
+	        <s3Region>ap-southeast-1</s3Region>
+	      	<s3AwsKey>AKIA3O4KCDUCER454CXQ</s3AwsKey>
+	      	<s3AwsSecret>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</s3AwsSecret>
+	    </Log4j2Appender> -->
     	<RollingFile name="logfile" filename="${basePath}/freeejobs_iam.log" append="true"
             filepattern="%d{YYYYMMddHHmmss}-freeejobs.log">
             <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
@@ -41,19 +61,23 @@
     	<logger name="org.springframework.orm.jpa" additivity="false">
 		   <level value="DEBUG"/>
 		   <appender-ref ref="JpaLogFile"/>
+		   <!-- <appender-ref ref="JPAlogfileS3"/> -->
 		</logger>
 		<logger name="org.springframework.jdbc.datasource" additivity="false">
 		   <level value="DEBUG"/>
 		   <appender-ref ref="JpaLogFile"/>
+		   <!-- <appender-ref ref="JPAlogfileS3"/> -->
 		</logger>
 		<logger name="org.hibernate.SQL" additivity="false">
 		   <level value="DEBUG"/>
 		   <appender-ref ref="JpaLogFile"/>
+		   <!-- <appender-ref ref="JPAlogfileS3"/> -->
 		</logger>
 		
     	<Root level="all">
 	    	<AppenderRef ref="stdout" level="all"/>
 	    	<AppenderRef ref="logfile" level="debug"/>
+	    	<!-- <AppenderRef ref="errorlogfileS3" level="error"/> -->
 	    	<AppenderRef ref="errorlogfile" level="error"/>
 	    </Root>
     </Loggers>
