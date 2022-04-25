@@ -31,12 +31,13 @@ public class WebConfig implements Filter,WebMvcConfigurer {
       System.out.println("WebConfig; "+request.getRequestURI());
       response.setHeader("Access-Control-Allow-Origin", "*");
       response.setHeader("Access-Control-Allow-Methods", "POST, PATCH, PUT, GET, OPTIONS, DELETE");
-      response.setHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With,observe");
+      response.setHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With,observe, x-xsrf-token");
       response.setHeader("Access-Control-Max-Age", "3600");
       response.setHeader("Access-Control-Allow-Credentials", "true");
       response.setHeader("Access-Control-Expose-Headers", "Authorization");
       response.addHeader("Access-Control-Expose-Headers", "responseType");
       response.addHeader("Access-Control-Expose-Headers", "observe");
+      response.addHeader("Access-Control-Allow-Headers", "x-xsrf-token");
       System.out.println("Request Method: "+request.getMethod());
       if (!(request.getMethod().equalsIgnoreCase("OPTIONS"))) {
           try {
@@ -51,7 +52,7 @@ public class WebConfig implements Filter,WebMvcConfigurer {
           response.setHeader("Access-Control-Max-Age", "3600");
           response.setHeader("Access-Control-Allow-Headers", "Access-Control-Expose-Headers"+"Authorization, content-type," +
           "USERID"+"ROLE"+
-                  "access-control-request-headers,access-control-request-method,accept,origin,authorization,x-requested-with,responseType,observe");
+                  "access-control-request-headers,access-control-request-method,accept,origin,authorization,x-requested-with,responseType,observe, x-xsrf-token");
           response.setStatus(HttpServletResponse.SC_OK);
       }
 
