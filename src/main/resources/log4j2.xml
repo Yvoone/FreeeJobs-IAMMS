@@ -61,23 +61,23 @@
     	<logger name="org.springframework.orm.jpa" additivity="false">
 		   <level value="DEBUG"/>
 		   <appender-ref ref="JpaLogFile"/>
-		   <!-- <appender-ref ref="JPAlogfileS3"/> -->
+		   <appender-ref ref="JPAlogfileS3"/>
 		</logger>
 		<logger name="org.springframework.jdbc.datasource" additivity="false">
 		   <level value="DEBUG"/>
 		   <appender-ref ref="JpaLogFile"/>
-		   <!-- <appender-ref ref="JPAlogfileS3"/> -->
+		   <appender-ref ref="JPAlogfileS3"/>
 		</logger>
 		<logger name="org.hibernate.SQL" additivity="false">
 		   <level value="DEBUG"/>
 		   <appender-ref ref="JpaLogFile"/>
-		   <!-- <appender-ref ref="JPAlogfileS3"/> -->
+		   <appender-ref ref="JPAlogfileS3"/>
 		</logger>
 		
     	<Root level="all">
 	    	<AppenderRef ref="stdout" level="all"/>
 	    	<AppenderRef ref="logfile" level="debug"/>
-	    	<!-- <AppenderRef ref="errorlogfileS3" level="error"/> -->
+	    	<AppenderRef ref="errorlogfileS3" level="error"/>
 	    	<AppenderRef ref="errorlogfile" level="error"/>
 	    </Root>
     </Loggers>
