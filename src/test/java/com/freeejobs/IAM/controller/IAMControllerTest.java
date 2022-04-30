@@ -34,6 +34,7 @@ import com.freeejobs.IAM.model.IAMAudit;
 import com.freeejobs.IAM.model.User;
 import com.freeejobs.IAM.model.UserAudit;
 import com.freeejobs.IAM.response.APIResponse;
+import com.freeejobs.IAM.response.Status;
 import com.freeejobs.IAM.service.IAMService;
 
 @WebAppConfiguration
@@ -432,7 +433,12 @@ public class IAMControllerTest {
     }
 	@Test
     void testUpdateUser() throws Exception {    
-        Long id = Long.valueOf(1); 
+        Long id = Long.valueOf(1);
+        Status stat = new Status();
+		stat.setStatusCode(Status.Type.OK.getCode());
+		stat.setMessage("Successfully update profile.");
+		stat.setStatusText(Status.Type.OK.getText());
+		
         when(iamService.isId(String.valueOf(userDTO.getId()))).thenReturn(true);
         when(iamService.isBlank(userDTO.getFirstName())).thenReturn(false);
         when(iamService.isBlank(userDTO.getLastName())).thenReturn(false);
@@ -441,6 +447,10 @@ public class IAMControllerTest {
         when(iamService.updateUser(userDTO)).thenReturn(user);
 
         APIResponse iamRes = iamController.updateUser(id, userDTO);
+        Status iamStatus = iamRes.getStatus();
+        assertEquals(iamStatus.getStatusCode(), stat.getStatusCode());
+        assertEquals(iamStatus.getStatusText(), stat.getStatusText());
+        assertEquals(iamStatus.getMessage(), stat.getMessage());
         assertEquals(user.getId(), ((User) iamRes.getData()).getId());
     }
 	
