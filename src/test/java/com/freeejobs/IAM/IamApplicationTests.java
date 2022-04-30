@@ -1,4 +1,4 @@
-package com.freeejobs.IAM;
+/* package com.freeejobs.IAM;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,3 +11,4 @@ class IamApplicationTests {
 	}
 
 }
+ */

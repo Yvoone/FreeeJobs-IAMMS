@@ -26,8 +26,8 @@ jobs:
           command: mvn -B -DskipTests clean package
       # Then run your tests!
       - run:
-          name: Test
-          command: mvn test
+          name: Analyze on SonarCloud
+          command: mvn verify sonar:sonar -Dsonar.projectKey=Syd0711_freeejobs-iamms-sonarcloud
       - heroku/deploy-via-git 
 
 # Invoke jobs via workflows
