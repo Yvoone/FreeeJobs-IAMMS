@@ -7,7 +7,7 @@
 	    <Log4j2Appender name="errorlogfileS3">
 	      <PatternLayout pattern="%d{HH:mm:ss,SSS} [%t] %-5p %c{36} - %m%n"/>
 	      <verbose>false</verbose>
-	      <stagingBufferSize>5</stagingBufferSize>
+	      <stagingBufferSize>500</stagingBufferSize>
 	      	<s3Bucket>freeejobslogs</s3Bucket>
 	        <s3Path>freeejobsIAM/error/</s3Path>
 	        <s3Region>ap-southeast-1</s3Region>
@@ -17,7 +17,7 @@
 	    <Log4j2Appender name="JPAlogfileS3">
 	      <PatternLayout pattern="%d{HH:mm:ss,SSS} [%t] %-5p %c{36} - %m%n"/>
 	      <verbose>false</verbose>
-	      <stagingBufferSize>5</stagingBufferSize>
+	      <stagingBufferSize>500</stagingBufferSize>
 	      	<s3Bucket>freeejobslogs</s3Bucket>
 	        <s3Path>freeejobsIAM/jpa/</s3Path>
 	        <s3Region>ap-southeast-1</s3Region>
