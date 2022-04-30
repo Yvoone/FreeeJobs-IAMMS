@@ -9,9 +9,11 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -92,6 +94,7 @@ public class IAMServiceTest {
 	private LoginDTO loginDTOUser_failStatus;
 	private LoginDTO loginDTOUser_encrypted;
 	private UserDTO userDTO;
+	private UserDTO userDTOEncryptedPw;
     private IAMAudit iamAudit;
     private UserAudit userAudit;
 	private int numberOfListingPerPage=10;
@@ -107,6 +110,7 @@ public class IAMServiceTest {
 		loginDTOUser_failStatus = IAMFixture.createLoginDTOUser_failStatus();
 		loginDTOUser_encrypted = IAMFixture.createLoginDTOUser_encrypted();
 		userDTO = IAMFixture.createUserDTO();
+		userDTOEncryptedPw = IAMFixture.createUserDTOEncryptedPassword();
 		iamAudit = IAMFixture.createIAMAudit();
 		userAudit = IAMFixture.createUserAudit();
 		
@@ -351,6 +355,40 @@ public class IAMServiceTest {
     void testGenerateIv() throws Exception {
 		iamService.generateIv();
     }
+	
+	@Test
+    void testRegisterUserProfile() throws Exception {
+		Method method = IAMService.class.getDeclaredMethod("registerUserProfile", User.class);
+		method.setAccessible(true);
+		//IAMService iamService = new IAMService();
+		User userRes = (User) method.invoke(iamService, user);
+		verify(userRepository, Mockito.times(1)).save(user);
+    }
+	
+	
+	@Test
+    void testRegisterUserCredential() throws Exception {
+		Method method = IAMService.class.getDeclaredMethod("registerUserCredential", IAM.class);
+		method.setAccessible(true);
+		//IAMService iamService = new IAMService();
+		User userRes = (User) method.invoke(iamService, iamUser);
+		verify(iamRepository, Mockito.times(1)).save(iamUser);
+    }
+//	@Test
+//    void testRegisterUser() throws Exception {
+//		IAM iamRes = iamService.registerUser(userDTOEncryptedPw);
+//		when(userRepository.save(user)).thenReturn(user);
+//		assertEquals(userDTOEncryptedPw.getId(), iamRes.getId());
+//    }
+//	
+//	@Test
+//    void testAddUser() throws Exception {
+//		when(iamRepository.save(iamUser)).thenReturn(iamUser);
+//        when(userRepository.save(user)).thenReturn(user);
+//		IAM iamRes = iamService.addUser(userDTO,IAMConstants.USER.USER_ROLE_ADMIN);
+//		//when(userRepository.save(user)).thenReturn(user);
+//		assertEquals(iamRes.getEmail(), userDTO.getEmail());
+//    }
 	
 	
 }

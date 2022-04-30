@@ -27,10 +27,10 @@ public class Status {
 
 	public Status() {}
 
-	public Status(Status.Type status) {
-    	this.statusCode = status.getCode();
-    	this.statusText = status.getText();
-    }
+//	public Status(Status.Type status) {
+//    	this.statusCode = status.getCode();
+//    	this.statusText = status.getText();
+//    }
 
 	public Status(Status.Type status, String message) {
 		this.statusCode = status.getCode();
@@ -68,26 +68,26 @@ public class Status {
 			return this.text;
 		}
 
-		public static Type fromCode(int code) {
-			for (Type obj : Type.values()) {
-
-				if (obj.getCode() == code) {
-					return obj;
-				}
-			}
-
-			throw new IllegalArgumentException("Invalid Input: " + code);
-		}
-
-		public static Type fromString(String text) {
-			for (Type obj : Type.values()) {
-
-				if (obj.getText().equalsIgnoreCase(text)) {
-					return obj;
-				}
-			}
-
-			throw new IllegalArgumentException("Invalid Input: " + text);
-		}
+//		public static Type fromCode(int code) {
+//			for (Type obj : Type.values()) {
+//
+//				if (obj.getCode() == code) {
+//					return obj;
+//				}
+//			}
+//
+//			throw new IllegalArgumentException("Invalid Input: " + code);
+//		}
+//
+//		public static Type fromString(String text) {
+//			for (Type obj : Type.values()) {
+//
+//				if (obj.getText().equalsIgnoreCase(text)) {
+//					return obj;
+//				}
+//			}
+//
+//			throw new IllegalArgumentException("Invalid Input: " + text);
+//		}
     }
 }

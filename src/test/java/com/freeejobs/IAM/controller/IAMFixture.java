@@ -120,7 +120,7 @@ public class IAMFixture {
     }
 	
 	public static UserDTO createUserDTO() {
-
+		
 		UserDTO userDTO = new UserDTO();
 		userDTO.setId(Long.valueOf(1));
 		userDTO.setFirstName("test");
@@ -136,6 +136,31 @@ public class IAMFixture {
 		userDTO.setDOB(new Date());
 		userDTO.setPassword("Password");
 		userDTO.setResumeUrl("test");
+		
+        
+
+        return userDTO;
+    }
+	
+	public static UserDTO createUserDTOEncryptedPassword() {
+		String encryptedFEPassword = "fbcvWO4i7R5uiBFy0/kmiT4puw8l+wqIefUUdAXDw/Ij4ANY3wvzaRk1hHiYqG3ltnp1IWcj4QdTStlAA6K7OckzGloY1qBF+FXVC4+8HVX43j1TP96eejjOlz67oeR7cirjbqW6k59DI7TMLFFV3mMYiUpMgB/yQQVUxQQ+Q6w257LNcWHSTWvCbGLRSXvaqR2oFPhomZQt5tEYVLE2JnZWH9lSvHFyQnne93EV4xdRu3j6rBErsup4HdrnQpxXY5S5okJ5Botarjtd854naxMjrRXsNPO9/OlASQebotoSDHhlXSD/eS9oiKMh9Vpx/lG0/iK86Zzr1otZWPDDkA==";
+        
+		UserDTO userDTO = new UserDTO();
+		userDTO.setId(Long.valueOf(1));
+		userDTO.setFirstName("test");
+		userDTO.setLastName("ing");
+		userDTO.setContactNo("99999999");
+		userDTO.setEmail("test@gmai.com");
+		userDTO.setGender("male");
+		userDTO.setProfessionalTitle("tester");
+		userDTO.setAboutMe("i am a tester");
+		userDTO.setAboutMeClient("i am testing");
+		userDTO.setSkills("QA");
+		userDTO.setLinkedInAcct("test");
+		userDTO.setDOB(new Date());
+		userDTO.setPassword(encryptedFEPassword);
+		userDTO.setResumeUrl("test");
+		userDTO.setProfilePicUrl("test");
 		
         
 
