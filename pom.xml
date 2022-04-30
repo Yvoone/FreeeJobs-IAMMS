@@ -15,8 +15,8 @@
 	<name>IAM</name>
 	<description>FreeeJobs IAM Microservice</description>
 	<properties>
-		<sonar.organization>syd0711</sonar.organization>
-		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.organization>yvoone</sonar.organization>
+  		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 	<dependencies>
 		<dependency>

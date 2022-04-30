@@ -27,7 +27,7 @@ jobs:
       # Then run your tests!
       - run:
           name: Analyze on SonarCloud
-          command: mvn verify sonar:sonar -Dsonar.projectKey=Syd0711_freeejobs-iamms-sonarcloud
+          command: mvn verify sonar:sonar -Dsonar.projectKey=Yvoone_FreeeJobs-IAMMS
       - heroku/deploy-via-git 
 
 # Invoke jobs via workflows
