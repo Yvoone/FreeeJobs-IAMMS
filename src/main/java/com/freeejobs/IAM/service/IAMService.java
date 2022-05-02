@@ -266,6 +266,12 @@ public class IAMService {
 		insertAudit(updatedUser, AuditEnum.UPDATE.getCode());
 		return updatedUser;
 	}
+	
+	public IAM updateUserIAM(long userId) {
+		IAM iam = getIAMByUserId(userId);
+		iam.setSessionTimeout(new Date());
+		return iamRepository.save(iam);
+	}
 	public boolean isId(String id) {
 		return String.valueOf(id).matches("[0-9]+");
 	}

@@ -78,6 +78,44 @@ public class IAMController {
 		resp.setStatus(responseStatus);
 		return resp;
 	}
+	
+	@RequestMapping(value="/getUserSessionTimeout", method= RequestMethod.GET)
+	public APIResponse getUserSessionTimeout(HttpServletResponse response,
+			@RequestParam long userId) throws URISyntaxException {
+
+		IAM userIAM = null;
+		APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
+		
+		try {
+			if(!IAMService.isId(String.valueOf(userId))){
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user session timeout. Invalid user Id.");
+				LOGGER.error(responseStatus.toString());
+			}else {
+				System.out.println(userId);
+				userIAM = IAMService.getIAMByUserId(userId);
+					if(userIAM == null) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user session timeout.");
+						
+					} else {
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully get user session timeout.");
+					}
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+//			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//			return null;
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user session timeout, Exception.");
+			LOGGER.error(e.getMessage(), e);
+		}
+		System.out.println(userIAM.getSessionTimeout());
+		resp.setData(userIAM.getSessionTimeout());
+		resp.setStatus(responseStatus);
+		return resp;
+	}
 
 	@RequestMapping(value="/registerUser", method= RequestMethod.POST)
 	public APIResponse registerUser(HttpServletResponse response,
@@ -359,6 +397,46 @@ public class IAMController {
 		resp.setStatus(responseStatus);
 		return resp;
     }
+	
+	@RequestMapping(value="/logout", method= RequestMethod.GET)
+	public APIResponse logout(HttpServletResponse response,
+			@RequestParam long userId) throws URISyntaxException {
+
+		IAM updateUserIAM = null;
+		APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
+		String resStr = "failed";
+		System.out.println(userId);
+		
+		try {
+			if(!IAMService.isId(String.valueOf(userId))){
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to logout. Invalid user Id.");
+				LOGGER.error(responseStatus.toString());
+			}else {
+				System.out.println(userId);
+				updateUserIAM = IAMService.updateUserIAM(userId);
+					if(updateUserIAM == null) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to logout.");
+						
+					} else {
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully logged out.");
+						resStr = "logged out";
+					}
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+//			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//			return null;
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to logout, Exception.");
+			LOGGER.error(e.getMessage(), e);
+		}
+		resp.setData(resStr);
+		resp.setStatus(responseStatus);
+		return resp;
+	}
 
 //    @DeleteMapping("/delete/{fileName}")
 //    public ResponseEntity<String> deleteFile(@PathVariable String fileName) {
