@@ -3,6 +3,7 @@ package com.freeejobs.IAM.controller;
 import java.io.Console;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -86,6 +87,7 @@ public class IAMController {
 		IAM userIAM = null;
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
+		Date timeout = null;
 		
 		try {
 			if(!IAMService.isId(String.valueOf(userId))){
@@ -101,6 +103,7 @@ public class IAMController {
 						
 					} else {
 						//response.setStatus(HttpServletResponse.SC_OK);
+						timeout = userIAM.getSessionTimeout();
 						responseStatus = new Status(Status.Type.OK, "Successfully get user session timeout.");
 					}
 			}
@@ -111,8 +114,7 @@ public class IAMController {
 			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user session timeout, Exception.");
 			LOGGER.error(e.getMessage(), e);
 		}
-		System.out.println(userIAM.getSessionTimeout());
-		resp.setData(userIAM.getSessionTimeout());
+		resp.setData(timeout);
 		resp.setStatus(responseStatus);
 		return resp;
 	}

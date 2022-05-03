@@ -374,6 +374,18 @@ public class IAMServiceTest {
 		User userRes = (User) method.invoke(iamService, iamUser);
 		verify(iamRepository, Mockito.times(1)).save(iamUser);
     }
+	
+	@Test
+    void testUpdateUserIAM() throws Exception {
+		Long userId = Long.valueOf(1);
+		Date timeout = new Date();
+		when(iamService.getIAMByUserId(userId)).thenReturn(iamUser);
+		iamUser.setSessionTimeout(timeout);
+        when(iamRepository.save(iamUser)).thenReturn(iamUser);
+        
+        IAM iamRes = iamService.updateUserIAM(userId);
+        assertEquals(iamUser.getId(), iamRes.getId());
+    }
 //	@Test
 //    void testRegisterUser() throws Exception {
 //		IAM iamRes = iamService.registerUser(userDTOEncryptedPw);

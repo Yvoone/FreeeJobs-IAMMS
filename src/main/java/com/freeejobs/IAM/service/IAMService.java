@@ -318,7 +318,7 @@ public class IAMService {
 			return new String(cipher.doFinal(Base64.getDecoder().decode(plainText.getBytes())));
 		}
 		catch (Exception e) {
-            e.printStackTrace();
+			LOGGER.error(e.getMessage(), e);
 
 			return "";
         }
@@ -450,7 +450,7 @@ public class IAMService {
 				
 			} catch (IOException | NoSuchAlgorithmException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error(e.getMessage(), e);
 			}
 			
 	  	return hashedFile;

@@ -118,6 +118,51 @@ public class IAMControllerTest {
     }
 	
 	@Test
+    void testGetUserSessionTimeout() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        Date timeout = new Date();
+        iamUser.setSessionTimeout(timeout);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.getIAMByUserId(userId)).thenReturn(iamUser);
+
+        APIResponse iamRes = iamController.getUserSessionTimeout(response, userId);
+        assertEquals(iamUser.getSessionTimeout(), ((Date) iamRes.getData()));
+    }
+	
+	@Test
+    void testGetUserSessionTimeout_NotId() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(false);
+
+        APIResponse iamRes = iamController.getUserSessionTimeout(response, userId);
+        assertNull(((Date) iamRes.getData()));
+    }
+	
+	@Test
+    void testGetUserSessionTimeout_null() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.getIAMByUserId(userId)).thenReturn(null);
+
+        APIResponse iamRes = iamController.getUserSessionTimeout(response, userId);
+        assertNull(((Date) iamRes.getData()));
+    }
+	
+	@Test
+    void testGetUserSessionTimeout_exception() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.getIAMByUserId(userId)).thenThrow(UnexpectedRollbackException.class);
+
+        APIResponse iamRes = iamController.getUserSessionTimeout(response, userId);
+        assertNull(((Date) iamRes.getData()));
+    }
+	
+	@Test
     void testRegisterUser() throws Exception {    
         HttpServletResponse response = mock(HttpServletResponse.class); 
         Long userId = Long.valueOf(1);
@@ -600,6 +645,51 @@ public class IAMControllerTest {
         assertNotNull(loginDTOUser.getIsLinkedInAcct());
         assertNotNull(loginDTOUser.getUserRole());
 
+    }
+	
+	@Test
+    void testLogout() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        Date timeout = new Date();
+        iamUser.setSessionTimeout(timeout);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.updateUserIAM(userId)).thenReturn(iamUser);
+
+        APIResponse iamRes = iamController.logout(response, userId);
+        assertEquals("logged out", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testtestLogout_NotId() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(false);
+
+        APIResponse iamRes = iamController.logout(response, userId);
+        assertEquals("failed", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testLogout_null() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.updateUserIAM(userId)).thenReturn(null);
+
+        APIResponse iamRes = iamController.logout(response, userId);
+        assertEquals("failed", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testLogout_exception() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.updateUserIAM(userId)).thenThrow(UnexpectedRollbackException.class);
+
+        APIResponse iamRes = iamController.logout(response, userId);
+        assertEquals("failed", ((String) iamRes.getData()));
     }
 	
 	
