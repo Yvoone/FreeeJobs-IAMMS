@@ -3,7 +3,9 @@ package com.freeejobs.IAM.service;
 import java.util.Date;
 import java.util.List;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -39,6 +41,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyStore;
@@ -49,10 +52,12 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
+import java.net.MalformedURLException;
 import java.net.URL;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -61,7 +66,7 @@ import org.apache.commons.lang3.StringUtils;
 @Service
 public class IAMService {
 	
-	private final String keyFileLocation="https://freeejobs.s3.ap-southeast-1.amazonaws.com/keys/macos/";
+	private final static String keyFileLocation="https://freeejobs.s3.ap-southeast-1.amazonaws.com/keys/macos/";
 
 	private static final Logger LOGGER = LogManager.getLogger(IAMService.class);
 
@@ -108,16 +113,14 @@ public class IAMService {
 			loginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_LOCKED);
 		}
 		else {
-			String inputPwd = RSADecrypt(loginDTO.getPassword());
-			String dbPwd = AESDecryption(userCred.getPassword());
+			String inputPwd = rsaDecrypt(loginDTO.getPassword());
+			String dbPwd = aesDecryption(userCred.getPassword());
 			loginDTO.setLoginStatus(getLoginStatus(inputPwd, dbPwd));
 		}
 
 		if(loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_SUCCESS) {
-			if(userCred.getSessionTimeout() != null ) {
-				if(currDate.before(userCred.getSessionTimeout())) {
-					loginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_ACTIVE_SESSION);
-				}
+			if(userCred!=null && userCred.getSessionTimeout() != null&& currDate.before(userCred.getSessionTimeout())) {
+				loginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_ACTIVE_SESSION);
 			}
 
 			if (loginDTO.getLoginStatus() != IAMConstants.LOGIN.STATUS_ACTIVE_SESSION) {
@@ -129,11 +132,9 @@ public class IAMService {
 			userCred.setFailedAttempt(IAMConstants.LOGIN.DEFAULT_ATTEMPT);
 			loginDTO.setUserRole(userCred.getUserRole());
 		}
-		else if (loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_FAIL) {
-			if(userCred!=null) {
-				int failedAttempt = userCred.getFailedAttempt() + 1;
-				userCred.setFailedAttempt(failedAttempt);
-			}
+		else if (loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_FAIL && userCred!=null) {
+			int failedAttempt = userCred.getFailedAttempt() + 1;
+			userCred.setFailedAttempt(failedAttempt);
 			
 		}
 		
@@ -147,14 +148,13 @@ public class IAMService {
 	}
 
 	public IAM registerUser(UserDTO userDTO) throws Exception {
-		//userDTO.setPassword(RSADecrypt(userDTO.getPassword()));
-		userDTO.setPassword(AESEncryption(RSADecrypt(userDTO.getPassword())));
+		userDTO.setPassword(aesEncryption(rsaDecrypt(userDTO.getPassword())));
 		return addUser(userDTO, IAMConstants.USER.USER_ROLE_REGULAR);
 
 	}
 
 	public IAM registerAdmin(UserDTO userDTO) throws Exception {
-		userDTO.setPassword(AESEncryption(RSADecrypt(userDTO.getPassword())));
+		userDTO.setPassword(aesEncryption(rsaDecrypt(userDTO.getPassword())));
 		return addUser(userDTO, IAMConstants.USER.USER_ROLE_ADMIN);
 	}
 
@@ -245,15 +245,12 @@ public class IAMService {
 		user.setFirstName(userDto.getFirstName());
 		user.setLastName(userDto.getLastName());
 		user.setContactNo(userDto.getContactNo());
-//		user.setGender(userDto.getGender());
-//		user.setDOB(user.getDOB());
 		user.setProfessionalTitle(userDto.getProfessionalTitle());
 		user.setAboutMe(userDto.getAboutMe());
 		user.setAboutMeClient(userDto.getAboutMeClient());
 		user.setSkills(userDto.getSkills());
 		user.setDateUpdated(new Date());
 		user.setProfilePicUrl(userDto.getProfilePicUrl());
-//		user.setResumeUrl(userDto.getResumeUrl());
 		
 		IAM iam = getIAMByUserId(userDto.getId());
 		iam.setEmail(userDto.getEmail());
@@ -284,16 +281,12 @@ public class IAMService {
 		return String.valueOf(contactNo).matches(regexPattern);
 	}
 	public boolean isEmailAdd(String email) {
-		String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@" 
+		String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*+@" 
 		        + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
 		return String.valueOf(email).matches(regexPattern);
 	}
 	public boolean isGender(String gender) {
-		if(gender.equalsIgnoreCase("FEMALE")||gender.equalsIgnoreCase("MALE")) {
-			return true;
-		}else {
-			return false;
-		}
+		return (gender.equalsIgnoreCase("FEMALE")||gender.equalsIgnoreCase("MALE"));
 	}
 	
 	public boolean isBlank(String value) {
@@ -301,7 +294,7 @@ public class IAMService {
 	}
 	
 	//Decryption
-	public String RSADecrypt(String plainText)throws Exception{
+	public String rsaDecrypt(String plainText) throws NoSuchAlgorithmException{
 		KeyFactory keyFactory=KeyFactory.getInstance("RSA");
 		//to get from s3 bucket later on
 		try {
@@ -325,21 +318,26 @@ public class IAMService {
 		// PrivateKey privKey =keyFactory.generatePrivate(new PKCS8EncodedKeySpec(FileUtils.readFileToByteArray(new File(keyFileLocation+"private.key"))));
      }
 	
-	public String AESEncryption(String plainText)
+	public String aesEncryption(String plainText)
 			throws Exception {
 		
 		SecretKey secretKey = getKeyFromFile();
 		
 		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
 
-		byte[] IV = generateIv();
+		//byte[] IV = generateIv();
+		byte[] bytesIV = new byte[16];
+		new SecureRandom().nextBytes(bytesIV);
 
-		cipher.init(Cipher.ENCRYPT_MODE, secretKey,new IvParameterSpec(IV));
+	    /* KEY + IV setting */
+	    IvParameterSpec iv = new IvParameterSpec(bytesIV);
+
+		cipher.init(Cipher.ENCRYPT_MODE, secretKey,iv);
 
 		byte[] encryptedByte = cipher.doFinal(plainText.getBytes());
 		
-		byte[] cipherTextWithIv = ByteBuffer.allocate(IV.length + encryptedByte.length)
-                .put(IV)
+		byte[] cipherTextWithIv = ByteBuffer.allocate(bytesIV.length + encryptedByte.length)
+                .put(bytesIV)
                 .put(encryptedByte)
                 .array();
 		
@@ -350,7 +348,7 @@ public class IAMService {
 		return encryptedText;
 	}
 
-	public String AESDecryption(String encryptedText)
+	public String aesDecryption(String encryptedText)
 			throws Exception {
 		SecretKey secretKey = getKeyFromFile();
     	
@@ -385,15 +383,12 @@ public class IAMService {
 	    return iv;
 	}
 	
-	private SecretKey getKeyFromFile() throws Exception {
-		
-		// File file =new File(keyFileLocation+"FreeeJobsKeyStore.jceks");
+	private SecretKey getKeyFromFile() throws IOException, KeyStoreException, NoSuchAlgorithmException, java.security.cert.CertificateException, UnrecoverableKeyException {
 		
 		URL url = new URL(keyFileLocation+"FreeeJobsKeyStore.jceks");
 		
 		InputStream inputStream = url.openStream();
-			
-		// byte[] secretKeyInBytes = new byte[(int) file.length()];
+		
 		byte[] secretKeyInBytes = new byte[inputStream.available()];
 		
 		String pwd = getImageHash();
@@ -407,6 +402,7 @@ public class IAMService {
 	    //get AES key extracted from keystore in bytes and string
 	    secretKeyInBytes = ssoSigningKey.getEncoded();
 		SecretKey secretKey = new SecretKeySpec(secretKeyInBytes, 0, secretKeyInBytes.length, "AES");
+		inputStream.close();
 		return secretKey;		
 	}
 	
@@ -417,7 +413,6 @@ public class IAMService {
 			  	URL url = new URL(keyFileLocation+"branding-iss.png");
 			
             	byte[] fileContent = IOUtils.toByteArray(url);
-				// byte[] fileContent = FileUtils.readFileToByteArray(new File(keyFileLocation+"branding-iss.png"));
 				MessageDigest digest = MessageDigest.getInstance("SHA-512");
 				 
 				byte[] inputBytes = fileContent;
@@ -449,7 +444,6 @@ public class IAMService {
 		        
 				
 			} catch (IOException | NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
 				LOGGER.error(e.getMessage(), e);
 			}
 			
@@ -477,11 +471,32 @@ public class IAMService {
 	}
 	
 	public String uploadFile(MultipartFile file) {
-        File fileObj = convertMultiPartFileToFile(file);
-//        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+		File convertedFile = new File(file.getOriginalFilename());
+		File directory = new File("/tmp/");
+
+	    try {
+	      if(FileUtils.directoryContains(directory, convertedFile)) {
+	        FileUtils.forceDelete(convertedFile); // Compliant
+	      }
+	    }
+	    catch(IOException ex){
+	    	LOGGER.error(ex.getMessage(), ex);
+	    }
+	    
+        try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
+            fos.write(file.getBytes());
+        } catch (IOException e) {
+        	LOGGER.error(e.getMessage(), e);
+        }
+        File fileObj = convertedFile;
         s3Client.putObject(new PutObjectRequest(bucketName, file.getOriginalFilename(), fileObj));
-        fileObj.delete();
-        return "File uploaded : " + file.getOriginalFilename();
+        boolean fileUploaded = fileObj.delete();
+        if(fileUploaded) {
+        	return "File uploaded : " + file.getOriginalFilename();
+        }else {
+        	return "File upload failed : " + file.getOriginalFilename();
+        }
+        
     }
 
 //    public String deleteFile(String fileName) {
@@ -489,15 +504,15 @@ public class IAMService {
 //        return fileName + " removed ...";
 //    }
 
-    private File convertMultiPartFileToFile(MultipartFile file) {
-        File convertedFile = new File(file.getOriginalFilename());
-        try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
-            fos.write(file.getBytes());
-        } catch (IOException e) {
-//            log.error("Error converting multipartFile to file", e);
-        }
-        return convertedFile;
-    }
+//    private File convertMultiPartFileToFile(MultipartFile file) {
+//        File convertedFile = new File(file.getOriginalFilename());
+//        try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
+//            fos.write(file.getBytes());
+//        } catch (IOException e) {
+////            log.error("Error converting multipartFile to file", e);
+//        }
+//        return convertedFile;
+//    }
 	
 
 }

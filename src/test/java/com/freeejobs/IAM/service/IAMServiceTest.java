@@ -340,7 +340,7 @@ public class IAMServiceTest {
 	@Test
     void testRSADecrypt_Exception() throws Exception {
 		
-		String res = iamService.RSADecrypt("abc");
+		String res = iamService.rsaDecrypt("abc");
 		
 		assertEquals(res,"");
     }
