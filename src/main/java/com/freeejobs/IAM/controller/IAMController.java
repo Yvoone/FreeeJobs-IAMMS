@@ -35,7 +35,7 @@ import com.freeejobs.IAM.dto.LoginDTO;
 
 @RestController
 @RequestMapping(value="/iam")
-@CrossOrigin
+@CrossOrigin("https://freeejobs-web.herokuapp.com")
 public class IAMController {
 
 	private static Logger LOGGER = LogManager.getLogger(IAMController.class);
