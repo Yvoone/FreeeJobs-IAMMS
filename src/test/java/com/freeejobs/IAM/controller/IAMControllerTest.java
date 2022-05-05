@@ -641,9 +641,9 @@ public class IAMControllerTest {
         assertNotNull(userDTO.getResumeUrl());
         assertNotNull(userDTO.getDOB());
         
-        assertNotNull(loginDTOUser.getUserId());
-        assertNotNull(loginDTOUser.getIsLinkedInAcct());
-        assertNotNull(loginDTOUser.getUserRole());
+        assertEquals(loginDTOUser.getUserId(), Long.valueOf(1));
+        assertEquals(loginDTOUser.getIsLinkedInAcct(), 1);
+        assertEquals(loginDTOUser.getUserRole(), 1);
 
     }
 	

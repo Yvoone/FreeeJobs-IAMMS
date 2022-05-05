@@ -118,8 +118,8 @@ public class IAMService {
 			loginDTO.setLoginStatus(getLoginStatus(inputPwd, dbPwd));
 		}
 
-		if(loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_SUCCESS) {
-			if(userCred!=null && userCred.getSessionTimeout() != null&& currDate.before(userCred.getSessionTimeout())) {
+		if(loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_SUCCESS && userCred!=null) {
+			if(userCred.getSessionTimeout() != null&& currDate.before(userCred.getSessionTimeout())) {
 				loginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_ACTIVE_SESSION);
 			}
 
@@ -129,7 +129,10 @@ public class IAMService {
 				userCred.setSessionTimeout(timeoutTime);
 				loginDTO.setUserId(userCred.getUserId());
 			}
-			userCred.setFailedAttempt(IAMConstants.LOGIN.DEFAULT_ATTEMPT);
+			if (userCred != null) {
+				userCred.setFailedAttempt(IAMConstants.LOGIN.DEFAULT_ATTEMPT);
+			}
+			
 			loginDTO.setUserRole(userCred.getUserRole());
 		}
 		else if (loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_FAIL && userCred!=null) {
@@ -281,8 +284,7 @@ public class IAMService {
 		return String.valueOf(contactNo).matches(regexPattern);
 	}
 	public boolean isEmailAdd(String email) {
-		String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*+@" 
-		        + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
+		String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*+@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)$";
 		return String.valueOf(email).matches(regexPattern);
 	}
 	public boolean isGender(String gender) {
@@ -384,25 +386,31 @@ public class IAMService {
 	}
 	
 	private SecretKey getKeyFromFile() throws IOException, KeyStoreException, NoSuchAlgorithmException, java.security.cert.CertificateException, UnrecoverableKeyException {
-		
-		URL url = new URL(keyFileLocation+"FreeeJobsKeyStore.jceks");
-		
-		InputStream inputStream = url.openStream();
-		
-		byte[] secretKeyInBytes = new byte[inputStream.available()];
-		
-		String pwd = getImageHash();
+		InputStream inputStream = null;
+		SecretKey secretKey = null;
+		try {
+			URL url = new URL(keyFileLocation+"FreeeJobsKeyStore.jceks");
+			
+			inputStream = url.openStream();
+			
+			byte[] secretKeyInBytes = new byte[inputStream.available()];
+			
+			String pwd = getImageHash();
 
-		char[] pwdArray = pwd.toCharArray();
-		
-		KeyStore ks1 = KeyStore.getInstance("JCEKS");
-		ks1.load(inputStream, pwdArray);
-	    // ks1.load(new FileInputStream(file), pwdArray);
-	    Key ssoSigningKey = ks1.getKey("secretKey", pwdArray);
-	    //get AES key extracted from keystore in bytes and string
-	    secretKeyInBytes = ssoSigningKey.getEncoded();
-		SecretKey secretKey = new SecretKeySpec(secretKeyInBytes, 0, secretKeyInBytes.length, "AES");
-		inputStream.close();
+			char[] pwdArray = pwd.toCharArray();
+			
+			KeyStore ks1 = KeyStore.getInstance("JCEKS");
+			ks1.load(inputStream, pwdArray);
+		    // ks1.load(new FileInputStream(file), pwdArray);
+		    Key ssoSigningKey = ks1.getKey("secretKey", pwdArray);
+		    //get AES key extracted from keystore in bytes and string
+		    secretKeyInBytes = ssoSigningKey.getEncoded();
+			secretKey = new SecretKeySpec(secretKeyInBytes, 0, secretKeyInBytes.length, "AES");
+		}catch(Exception e) {
+			
+		}finally {
+			inputStream.close();
+		}
 		return secretKey;		
 	}
 	
@@ -471,48 +479,21 @@ public class IAMService {
 	}
 	
 	public String uploadFile(MultipartFile file) {
-		File convertedFile = new File(file.getOriginalFilename());
-		File directory = new File("/tmp/");
+        File fileObj = convertMultiPartFileToFile(file);
+        s3Client.putObject(new PutObjectRequest(bucketName, file.getOriginalFilename(), fileObj));
+        fileObj.delete();
+        return "File uploaded : " + file.getOriginalFilename();
+    }
 
-	    try {
-	      if(FileUtils.directoryContains(directory, convertedFile)) {
-	        FileUtils.forceDelete(convertedFile); // Compliant
-	      }
-	    }
-	    catch(IOException ex){
-	    	LOGGER.error(ex.getMessage(), ex);
-	    }
-	    
+    private File convertMultiPartFileToFile(MultipartFile file) {
+        File convertedFile = new File(file.getOriginalFilename());
         try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
             fos.write(file.getBytes());
         } catch (IOException e) {
-        	LOGGER.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         }
-        File fileObj = convertedFile;
-        s3Client.putObject(new PutObjectRequest(bucketName, file.getOriginalFilename(), fileObj));
-        boolean fileUploaded = fileObj.delete();
-        if(fileUploaded) {
-        	return "File uploaded : " + file.getOriginalFilename();
-        }else {
-        	return "File upload failed : " + file.getOriginalFilename();
-        }
-        
+        return convertedFile;
     }
-
-//    public String deleteFile(String fileName) {
-//        s3Client.deleteObject(bucketName, fileName);
-//        return fileName + " removed ...";
-//    }
-
-//    private File convertMultiPartFileToFile(MultipartFile file) {
-//        File convertedFile = new File(file.getOriginalFilename());
-//        try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
-//            fos.write(file.getBytes());
-//        } catch (IOException e) {
-////            log.error("Error converting multipartFile to file", e);
-//        }
-//        return convertedFile;
-//    }
 	
 
 }
