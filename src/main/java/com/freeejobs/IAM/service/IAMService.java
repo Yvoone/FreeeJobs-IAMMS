@@ -306,7 +306,7 @@ public class IAMService {
 
 			PrivateKey privKey =keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyData));
 
-			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			Cipher cipher = Cipher.getInstance("RSA/ECB/RSA/ECB/OAEPWITHSHA-256ANDMGF1PADDING");
  
         	cipher.init(Cipher.DECRYPT_MODE, privKey);
 			
@@ -409,7 +409,10 @@ public class IAMService {
 		}catch(Exception e) {
 			
 		}finally {
-			inputStream.close();
+			if(inputStream!=null) {
+				inputStream.close();
+			}
+			
 		}
 		return secretKey;		
 	}
@@ -481,8 +484,12 @@ public class IAMService {
 	public String uploadFile(MultipartFile file) {
         File fileObj = convertMultiPartFileToFile(file);
         s3Client.putObject(new PutObjectRequest(bucketName, file.getOriginalFilename(), fileObj));
-        fileObj.delete();
-        return "File uploaded : " + file.getOriginalFilename();
+        boolean fileUploaded = fileObj.delete();
+        if(fileUploaded) {
+        	return "File uploaded : " + file.getOriginalFilename();
+        }else {
+        	return "File upload failed : " + file.getOriginalFilename();
+        }
     }
 
     private File convertMultiPartFileToFile(MultipartFile file) {
