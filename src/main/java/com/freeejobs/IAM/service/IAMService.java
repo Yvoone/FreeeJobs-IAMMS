@@ -306,7 +306,7 @@ public class IAMService {
 
 			PrivateKey privKey =keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyData));
 
-			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWITHSHA-256ANDMGF1PADDING");
+			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
  
         	cipher.init(Cipher.DECRYPT_MODE, privKey);
 			
