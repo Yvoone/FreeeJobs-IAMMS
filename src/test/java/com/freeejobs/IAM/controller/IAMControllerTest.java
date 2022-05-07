@@ -581,7 +581,7 @@ public class IAMControllerTest {
 	
 	@Test
     void testUploadFile_validated() throws Exception {    
-        MultipartFile file = new MockMultipartFile("1.pdf", "Hello World".getBytes());
+        MultipartFile file = new MockMultipartFile("1.pdf","1.pdf", "pdf", "Hello World".getBytes());
         when(iamService.validateFileName("1.pdf")).thenReturn(true);
         when(iamService.uploadFile(file)).thenReturn("File uploaded : ");
 
@@ -591,11 +591,11 @@ public class IAMControllerTest {
 	
 	@Test
     void testUploadFile_failedValidation() throws Exception {    
-        MultipartFile file = new MockMultipartFile("helloWorld.txt", "Hello World".getBytes());
+        MultipartFile file = new MockMultipartFile("helloWorld.txt","abc.pdf", "pdf", "Hello World".getBytes());
         when(iamService.validateFileName("abc.pdf")).thenReturn(false);
 
         APIResponse iamRes = iamController.uploadFile(file);
-        assertEquals("File uploaded : ", ((String) iamRes.getData()));
+        assertEquals("Failed", ((String) iamRes.getData()));
     }
 	
 	@Test
