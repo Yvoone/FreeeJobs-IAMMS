@@ -7,11 +7,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.net.URISyntaxException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.transaction.UnexpectedRollbackException;
@@ -577,9 +580,19 @@ public class IAMControllerTest {
     }
 	
 	@Test
-    void testUploadFile() throws Exception {    
-        MultipartFile file = null;
+    void testUploadFile_validated() throws Exception {    
+        MultipartFile file = new MockMultipartFile("1.pdf", "Hello World".getBytes());
+        when(iamService.validateFileName("1.pdf")).thenReturn(true);
         when(iamService.uploadFile(file)).thenReturn("File uploaded : ");
+
+        APIResponse iamRes = iamController.uploadFile(file);
+        assertEquals("File uploaded : ", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testUploadFile_failedValidation() throws Exception {    
+        MultipartFile file = new MockMultipartFile("helloWorld.txt", "Hello World".getBytes());
+        when(iamService.validateFileName("abc.pdf")).thenReturn(false);
 
         APIResponse iamRes = iamController.uploadFile(file);
         assertEquals("File uploaded : ", ((String) iamRes.getData()));
@@ -692,6 +705,107 @@ public class IAMControllerTest {
         assertEquals("failed", ((String) iamRes.getData()));
     }
 	
+	
+	@Test
+    void testGetOTP() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.generateOneTimePassword(userId)).thenReturn("Success");
+
+        APIResponse iamRes = iamController.getOTP(response, userId);
+        assertEquals("sent", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testGetOTP_NotId() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(false);
+
+        APIResponse iamRes = iamController.getOTP(response, userId);
+        assertEquals("failed", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testGetOTP_failed() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.generateOneTimePassword(userId)).thenReturn("Failed");
+
+        APIResponse iamRes = iamController.getOTP(response, userId);
+        assertEquals("failed", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testGetOTP_exception() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.generateOneTimePassword(userId)).thenThrow(UnexpectedRollbackException.class);
+
+        APIResponse iamRes = iamController.getOTP(response, userId);
+        assertEquals("failed", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testValidateOTP() throws Exception {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        Calendar currCal = Calendar.getInstance();
+		Date otpReqTime = DateUtils.addMinutes(currCal.getTime(), 5);
+        iamUser.setOtpPassword("ZrFQULIY3ki5SCkTAY7177oFxZrIajB6xTpVkvYjUc0=");
+        iamUser.setOtpRequestedTime(otpReqTime);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.validateOTP("lKtuWgkS", userId)).thenReturn("Verified");
+
+        APIResponse iamRes = iamController.validateOTP(response, userId, "lKtuWgkS");
+        assertEquals("Verified", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testValidateOTP_NotId() throws URISyntaxException {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(false);
+
+        APIResponse iamRes = iamController.validateOTP(response, userId, "lKtuWgkS");
+        assertEquals("Failed", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testValidateOTP_failed() throws Exception {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.validateOTP("ABC", userId)).thenReturn("Failed");
+
+        APIResponse iamRes = iamController.validateOTP(response, userId, "ABC");
+        assertEquals("Failed", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testValidateOTP_expired() throws Exception {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.validateOTP("lKtuWgkS", userId)).thenReturn("Expired");
+
+        APIResponse iamRes = iamController.validateOTP(response, userId, "lKtuWgkS");
+        assertEquals("Expired", ((String) iamRes.getData()));
+    }
+	
+	@Test
+    void testValidateOTP_exception() throws Exception {    
+        HttpServletResponse response = mock(HttpServletResponse.class); 
+        Long userId = Long.valueOf(1);
+        when(iamService.isId(String.valueOf(userId))).thenReturn(true);
+        when(iamService.validateOTP("lKtuWgkS", userId)).thenThrow(Exception.class);
+
+        APIResponse iamRes = iamController.validateOTP(response, userId, "lKtuWgkS");
+        assertEquals("Failed", ((String) iamRes.getData()));
+    }
 	
 	
 	

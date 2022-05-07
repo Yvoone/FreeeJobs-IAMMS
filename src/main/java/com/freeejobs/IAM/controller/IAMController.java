@@ -391,9 +391,17 @@ public class IAMController {
 	
 	@RequestMapping(value="/upload", method= RequestMethod.POST)
     public APIResponse uploadFile(@RequestParam(value = "imageFile") MultipartFile file) {
-        String uploadstatus = IAMService.uploadFile(file);
+		String uploadstatus = null;
         APIResponse resp = new APIResponse();
-		Status responseStatus = new Status(Status.Type.OK, "Successfully upload image.");
+		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
+		if(IAMService.validateFileName(file.getOriginalFilename())) {
+			uploadstatus = IAMService.uploadFile(file);
+			responseStatus = new Status(Status.Type.OK, "Successfully upload image.");
+		}else {
+			uploadstatus = "Failed";
+			responseStatus = new Status(Status.Type.OK, "Failed upload image, invalid filename.");
+		}
+        
 		
 		resp.setData(uploadstatus);
 		resp.setStatus(responseStatus);
@@ -436,6 +444,86 @@ public class IAMController {
 			LOGGER.error(e.getMessage(), e);
 		}
 		resp.setData(resStr);
+		resp.setStatus(responseStatus);
+		return resp;
+	}
+	
+	@RequestMapping(value="/getOTP", method= RequestMethod.GET)
+	public APIResponse getOTP(HttpServletResponse response,
+			@RequestParam long userId) throws URISyntaxException {
+
+		String getOTP = null;
+		APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
+		String resStr = "failed";
+		
+		try {
+			if(!IAMService.isId(String.valueOf(userId))){
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get OTP. Invalid user Id.");
+				LOGGER.error(responseStatus.toString());
+			}else {
+				System.out.println(userId);
+				getOTP = IAMService.generateOneTimePassword(userId);
+					if(getOTP.equalsIgnoreCase("Failed")) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get OTP.");
+						
+					} else {
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully get OTP.");
+						resStr = "sent";
+					}
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+//			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//			return null;
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get OTP, Exception.");
+			LOGGER.error(e.getMessage(), e);
+		}
+		resp.setData(resStr);
+		resp.setStatus(responseStatus);
+		return resp;
+	}
+	
+	@RequestMapping(value="/validateOTP", method= RequestMethod.GET)
+	public APIResponse validateOTP(HttpServletResponse response,
+			@RequestParam long userId, @RequestParam String inputOtp) throws URISyntaxException {
+
+		String validateOTP = null;
+		APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
+		
+		try {
+			if(!IAMService.isId(String.valueOf(userId))){
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to validate OTP. Invalid user Id.");
+				LOGGER.error(responseStatus.toString());
+				validateOTP = "Failed";
+			}else {
+				System.out.println(userId);
+				validateOTP = IAMService.validateOTP(inputOtp, userId);
+					if(validateOTP.equalsIgnoreCase("Failed")) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to validate OTP.");
+						
+					} else if(validateOTP.equalsIgnoreCase("Expired")){
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to validate OTP, Expired.");
+					} else {
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully validate OTP.");
+					}
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+//			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//			return null;
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to validate OTP, Exception.");
+			LOGGER.error(e.getMessage(), e);
+			validateOTP = "Failed";
+		}
+		resp.setData(validateOTP);
 		resp.setStatus(responseStatus);
 		return resp;
 	}

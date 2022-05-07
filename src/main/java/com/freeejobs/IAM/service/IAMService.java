@@ -2,6 +2,7 @@ package com.freeejobs.IAM.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -9,6 +10,10 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.MimeMessage;
 import javax.security.cert.CertificateException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -16,6 +21,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +34,9 @@ import com.freeejobs.IAM.repository.UserAuditRepository;
 import com.freeejobs.IAM.model.User;
 import com.freeejobs.IAM.model.UserAudit;
 import com.freeejobs.IAM.repository.UserRepository;
+
+import net.bytebuddy.utility.RandomString;
+
 import com.freeejobs.IAM.dto.UserDTO;
 import com.freeejobs.IAM.dto.LoginDTO;
 import com.amazonaws.services.s3.AmazonS3;
@@ -40,6 +50,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -62,11 +73,12 @@ import java.net.URL;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 
 @Service
 public class IAMService {
 	
-	private final static String keyFileLocation="https://freeejobs.s3.ap-southeast-1.amazonaws.com/keys/macos/";
+	private final static String keyFileLocation="https://freeejobs-keys.s3.ap-southeast-1.amazonaws.com/macos/";
 
 	private static final Logger LOGGER = LogManager.getLogger(IAMService.class);
 
@@ -81,6 +93,9 @@ public class IAMService {
 
 	@Autowired
 	private UserAuditRepository userAuditRepository;
+	
+	@Autowired 
+	private JavaMailSender mailSender;
 	
 	@Value("${application.bucket.name}")
     private String bucketName;
@@ -295,6 +310,11 @@ public class IAMService {
 		return StringUtils.isBlank(value);
 	}
 	
+	public boolean validateFileName(String name) {
+		String[] splitted = name.split("\\.");
+		return String.valueOf(splitted[0]).matches("[0-9]+") && (splitted[1].equalsIgnoreCase("JPG")||splitted[1].equalsIgnoreCase("PDF"));
+	}
+	
 	//Decryption
 	public String rsaDecrypt(String plainText) throws NoSuchAlgorithmException{
 		KeyFactory keyFactory=KeyFactory.getInstance("RSA");
@@ -501,6 +521,92 @@ public class IAMService {
         }
         return convertedFile;
     }
+    
+    public String generateOneTimePassword(long userId) {
+    	String OTP = RandomString.make(8);
+        String encryptedOTP;
+		try {
+			Calendar currCal = Calendar.getInstance();
+			Date otpReqTime = DateUtils.addMinutes(currCal.getTime(), 5);
+			encryptedOTP = aesEncryption(OTP);
+			IAM iam = getIAMByUserId(userId);
+			iam.setOtpPassword(encryptedOTP);
+			iam.setOtpRequestedTime(otpReqTime);
+	         
+	        iamRepository.save(iam);
+	         
+	        sendOTPEmail(iam, OTP);
+	        return "Success";
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			return "Failed";
+		}
+        
+    }
+     
+    public void sendOTPEmail(IAM iam, String OTP) {
+    	Properties props = new Properties();
+        props.put("mail.smtp.ssl.enable", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+    	MimeMessage message = mailSender.createMimeMessage();              
+        MimeMessageHelper helper = new MimeMessageHelper(message);
+        
+        User user = getUserByUserId(iam.getUserId());
+         
+        try {
+			helper.setFrom("contact@freeejobs.com", "FreeeJobs Support");
+		
+        helper.setTo(iam.getEmail());
+         
+        String subject = "Here's your One Time Password (OTP) - Expire in 5 minutes!";
+         
+        String content = "<p>Hello " + user.getFirstName()+ "</p>"
+                + "<p>For security reason, you're required to use the following "
+                + "One Time Password to login:</p>"
+                + "<p><b>" + OTP + "</b></p>"
+                + "<br>"
+                + "<p>Note: this OTP is set to expire in 5 minutes.</p>";
+         
+        helper.setSubject(subject);
+         
+        helper.setText(content, true);
+         
+        mailSender.send(message);  
+        } catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+        	LOGGER.error(e.getMessage(), e);
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			LOGGER.error(e.getMessage(), e);
+		}
+    }
+ 
+    public void clearOTP(long userId) {
+    	Calendar currCal = Calendar.getInstance();
+    	currCal.add(Calendar.MINUTE, IAMConstants.LOGIN.SESSION_DURATION);
+		Date timeoutTime = currCal.getTime();
+    	IAM iam = getIAMByUserId(userId);
+    	
+    	iam.setOtpPassword(null);
+    	iam.setOtpRequestedTime(null);
+    	iam.setSessionTimeout(timeoutTime);
+    	iamRepository.save(iam);
+    }  
+    
+    public String validateOTP(String inputOTP, long userId) throws Exception {
+    	IAM iam = getIAMByUserId(userId);
+    	//check if otp expired first a not
+    	if(iam.getOtpRequestedTime().before(new Date())) {
+    		return "Expired";
+    	}else {
+    		if(inputOTP.equals(aesDecryption(iam.getOtpPassword()))) {
+    			clearOTP(userId);
+    			return "Verified";
+    		}else {
+    			return "Failed";
+    		}
+    	}
+    }  
 	
 
 }

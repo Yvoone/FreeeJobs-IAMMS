@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -20,7 +21,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Random;
 
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -36,6 +40,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -59,6 +65,8 @@ import com.freeejobs.IAM.repository.UserAuditRepository;
 import com.freeejobs.IAM.repository.UserRepository;
 import com.freeejobs.IAM.response.APIResponse;
 
+import net.bytebuddy.utility.RandomString;
+
 @WebAppConfiguration
 @ContextConfiguration(classes = WebConfig.class)
 @RunWith(JUnitPlatform.class)
@@ -81,6 +89,12 @@ public class IAMServiceTest {
 	
 	@Mock
     private AmazonS3 s3Client;
+	
+	@Mock
+    JavaMailSender mailSender;
+
+    @Mock
+    MimeMessage mimeMessage;
 	
 	@InjectMocks
 	private IAMService iamService;
@@ -338,6 +352,21 @@ public class IAMServiceTest {
     }
 	
 	@Test
+    void testValidateFileName_true() {    
+
+        boolean valid = iamService.validateFileName("1.jpg");
+        
+        assertTrue(valid);
+    }
+	@Test
+    void testValidateFileName_false() {    
+
+        boolean valid = iamService.validateFileName("abc.pdf");
+        
+        assertFalse(valid);
+    }
+	
+	@Test
     void testRSADecrypt_Exception() throws Exception {
 		
 		String res = iamService.rsaDecrypt("abc");
@@ -386,6 +415,66 @@ public class IAMServiceTest {
         IAM iamRes = iamService.updateUserIAM(userId);
         assertEquals(iamUser.getId(), iamRes.getId());
     }
+	
+	@Test
+	void testValidateOTP_Verified() throws Exception {
+		Long userId = Long.valueOf(1);
+		Calendar currCal = Calendar.getInstance();
+		Date otpReqTime = DateUtils.addMinutes(currCal.getTime(), 5);
+        iamUser.setOtpPassword("ZrFQULIY3ki5SCkTAY7177oFxZrIajB6xTpVkvYjUc0=");
+        iamUser.setOtpRequestedTime(otpReqTime);
+		when(iamService.getIAMByUserId(userId)).thenReturn(iamUser);
+		String otpRes = iamService.validateOTP("lKtuWgkS", userId);
+		assertEquals(otpRes, "Verified");
+	}
+	
+	@Test
+	void testValidateOTP_Expired() throws Exception {
+		Long userId = Long.valueOf(1);
+		Calendar currCal = Calendar.getInstance();
+		Date otpReqTime = DateUtils.addMinutes(currCal.getTime(), -5);
+        iamUser.setOtpPassword("ZrFQULIY3ki5SCkTAY7177oFxZrIajB6xTpVkvYjUc0=");
+        iamUser.setOtpRequestedTime(otpReqTime);
+		when(iamService.getIAMByUserId(userId)).thenReturn(iamUser);
+		String otpRes = iamService.validateOTP("lKtuWgkS", userId);
+		assertEquals(otpRes, "Expired");
+	}
+	
+	@Test
+	void testValidateOTP_Failed() throws Exception {
+		Long userId = Long.valueOf(1);
+		Calendar currCal = Calendar.getInstance();
+		Date otpReqTime = DateUtils.addMinutes(currCal.getTime(), 5);
+        iamUser.setOtpPassword("ZrFQULIY3ki5SCkTAY7177oFxZrIajB6xTpVkvYjUc0=");
+        iamUser.setOtpRequestedTime(otpReqTime);
+		when(iamService.getIAMByUserId(userId)).thenReturn(iamUser);
+		String otpRes = iamService.validateOTP("abx", userId);
+		assertEquals(otpRes, "Failed");
+	}
+	
+	@Test
+	void testGenerateOneTimePassword() throws Exception {
+		Long userId = Long.valueOf(1);
+		Calendar currCal = Calendar.getInstance();
+		Date otpReqTime = DateUtils.addMinutes(currCal.getTime(), 5);
+//		RandomString mockRandom = mock(RandomString.class);
+//		when((String) mockRandom.make(8)).thenReturn("lKtuWgkS");
+        iamUser.setOtpPassword("ZrFQULIY3ki5SCkTAY7177oFxZrIajB6xTpVkvYjUc0=");
+        iamUser.setOtpRequestedTime(otpReqTime);
+		when(iamService.getIAMByUserId(userId)).thenReturn(iamUser);
+		
+//		mimeMessage = mock(MimeMessage.class);
+//		mailSender = mock(JavaMailSender.class);
+//		MimeMessageHelper messageHelper = mock(MimeMessageHelper.class);
+//        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        //when(new MimeMessageHelper(mimeMessage)).thenReturn(messageHelper);
+//        when(iamService.getUserByUserId(userId)).thenReturn(user);
+//		IAMService mockIamService = mock(IAMService.class);
+//		doThrow(new NullPointerException()).when(mockIamService).sendOTPEmail(iamUser,"lKtuWgkS");
+        
+		String otpRes = iamService.generateOneTimePassword(userId);
+		assertEquals(otpRes, "Failed");
+	}
 //	@Test
 //    void testRegisterUser() throws Exception {
 //		IAM iamRes = iamService.registerUser(userDTOEncryptedPw);
@@ -404,3 +493,4 @@ public class IAMServiceTest {
 	
 	
 }
+

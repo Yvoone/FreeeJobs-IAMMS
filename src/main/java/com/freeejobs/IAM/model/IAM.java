@@ -50,6 +50,13 @@ public class IAM {
 	@Column(name = "sessionTimeout", columnDefinition="DATETIME")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date sessionTimeout;
+	
+	@Column(name = "otp_password")
+	private String otpPassword;
+	
+	@Column(name = "otp_requested_time", columnDefinition="DATETIME")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date otpRequestedTime;
 
 	public long getId() {
 		return id;
@@ -122,6 +129,22 @@ public class IAM {
 
 	public void setFailedAttempt(int failedAttempt) {
 		this.failedAttempt = failedAttempt;
+	}
+
+	public String getOtpPassword() {
+		return otpPassword;
+	}
+
+	public void setOtpPassword(String otpPassword) {
+		this.otpPassword = otpPassword;
+	}
+
+	public Date getOtpRequestedTime() {
+		return otpRequestedTime;
+	}
+
+	public void setOtpRequestedTime(Date otpRequestedTime) {
+		this.otpRequestedTime = otpRequestedTime;
 	}
 
 	@Override

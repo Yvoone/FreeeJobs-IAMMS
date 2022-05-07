@@ -180,6 +180,7 @@ public class IAMFixture {
 		user.setAboutMeClient("i am testing");
 		user.setSkills("QA");
 		user.setLinkedInAcct("test");
+		user.setResumeUrl("test");
 		user.setDOB(new Date());
 		user.setDateCreated(new Date());
 		user.setDateUpdated(new Date());
