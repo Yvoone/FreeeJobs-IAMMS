@@ -59,7 +59,7 @@ public class IAMController {
 				System.out.println(userId);
 				userProfile = IAMService.getUserByUserId(userId);
 					if(userProfile == null) {
-						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
 						//return null;
 						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user Profile.");
 						
