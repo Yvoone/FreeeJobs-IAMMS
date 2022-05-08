@@ -32,6 +32,7 @@ import com.freeejobs.IAM.response.Status;
 import com.freeejobs.IAM.dto.UserDTO;
 import com.freeejobs.IAM.constants.IAMConstants;
 import com.freeejobs.IAM.dto.LinkedInDTO;
+import com.freeejobs.IAM.dto.LinkedInLoginDTO;
 import com.freeejobs.IAM.dto.LoginDTO;
 
 @RestController
@@ -584,19 +585,19 @@ public class IAMController {
 	
 	@RequestMapping(value="/linkedInLogin", method= RequestMethod.POST)
 	public APIResponse linkedInLogin(HttpServletResponse response,
-			@RequestBody LinkedInDTO linkedInDTO) throws URISyntaxException {
+			@RequestBody LinkedInLoginDTO linkedInLoginDTO) throws URISyntaxException {
 
-		LoginDTO login = null;
+		LinkedInLoginDTO login = null;
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "LinkedIn login success.");
 		List<String> errors = new ArrayList<String>();
 		try {
-			if(IAMService.isBlank(linkedInDTO.getLinkedInId())) {
+			if(IAMService.isBlank(linkedInLoginDTO.getLinkedInId())) {
 				errors.add("Invalid linkedIn ID");
 			}
 			
 			if(errors.isEmpty()) {
-				login = IAMService.login(linkedInDTO);
+				login = IAMService.linkedInLogin(linkedInLoginDTO);
 					if(login.getLoginStatus()!=IAMConstants.LOGIN.STATUS_SUCCESS) {
 						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 						//return null;
@@ -604,7 +605,6 @@ public class IAMController {
 						
 					} else {
 
-						System.out.println(login.getPassword());
 						//response.setStatus(HttpServletResponse.SC_OK);
 						responseStatus = new Status(Status.Type.OK, "Successfully logged in.");
 					}

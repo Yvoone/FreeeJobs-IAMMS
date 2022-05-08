@@ -645,7 +645,7 @@ public class IAMService {
 		return addedIAM;
 	}
     
-    public LinkedInLoginDTO linkedInLlogin(LinkedInLoginDTO linkedInLoginDTO) throws Exception {
+    public LinkedInLoginDTO linkedInLogin(LinkedInLoginDTO linkedInLoginDTO) throws Exception {
 
 		IAM userCred = getIAMByLinkedInId(linkedInLoginDTO.getLinkedInId());
 		Calendar currCal = Calendar.getInstance();
