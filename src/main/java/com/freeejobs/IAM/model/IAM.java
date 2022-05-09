@@ -57,6 +57,9 @@ public class IAM {
 	@Column(name = "otp_requested_time", columnDefinition="DATETIME")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date otpRequestedTime;
+	
+	@Column(name = "linkedInId")
+	private String linkedInId;
 
 	public long getId() {
 		return id;
@@ -145,6 +148,14 @@ public class IAM {
 
 	public void setOtpRequestedTime(Date otpRequestedTime) {
 		this.otpRequestedTime = otpRequestedTime;
+	}
+
+	public String getLinkedInId() {
+		return linkedInId;
+	}
+
+	public void setLinkedInId(String linkedInId) {
+		this.linkedInId = linkedInId;
 	}
 
 	@Override

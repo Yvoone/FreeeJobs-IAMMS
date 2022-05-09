@@ -14,5 +14,5 @@ public interface IAMRepository extends JpaRepository<IAM, Long> {
 	public IAM findByEmail(String email);
 	public List<IAM> findAll();
 	public IAM findByUserId(long id);
-
+	public IAM findByLinkedInId(String id);
 }

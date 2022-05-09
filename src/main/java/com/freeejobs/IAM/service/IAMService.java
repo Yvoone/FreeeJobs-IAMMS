@@ -38,6 +38,8 @@ import com.freeejobs.IAM.repository.UserRepository;
 import net.bytebuddy.utility.RandomString;
 
 import com.freeejobs.IAM.dto.UserDTO;
+import com.freeejobs.IAM.dto.LinkedInDTO;
+import com.freeejobs.IAM.dto.LinkedInLoginDTO;
 import com.freeejobs.IAM.dto.LoginDTO;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -113,6 +115,10 @@ public class IAMService {
 	
 	public IAM getIAMByUserId(long id) {
 		return iamRepository.findByUserId(id);
+	}
+	
+	public IAM getIAMByLinkedInId(String linkedInId) {
+		return iamRepository.findByLinkedInId(linkedInId);
 	}
 
 	public LoginDTO login(LoginDTO loginDTO) throws Exception {
@@ -617,5 +623,80 @@ public class IAMService {
     	}
     }  
 	
+    public IAM registerLinkedInUser(LinkedInDTO linkedInDTO) throws Exception {
+		return addLinkedInUser(linkedInDTO, IAMConstants.USER.USER_ROLE_REGULAR);
+	}
+    
+    private IAM addLinkedInUser(LinkedInDTO linkedInDTO, int userRole) {
+		User user = new User();
+		Date currDate = new Date();
+
+		user.setFirstName(linkedInDTO.getFirstName());
+		user.setLastName(linkedInDTO.getLastName());
+		user.setDateCreated(currDate);
+		user.setDateUpdated(currDate);
+
+		User addedUser = registerUserProfile(user);
+		long userId = addedUser.getId();
+		insertAudit(addedUser, AuditEnum.INSERT.getCode());
+
+		IAM iam = new IAM();
+
+		iam.setLinkedInId(linkedInDTO.getLinkedInId());
+		iam.setUserId(userId);
+		iam.setUserRole(userRole);
+		iam.setFailedAttempt(IAMConstants.LOGIN.DEFAULT_ATTEMPT);
+		iam.setDateCreated(currDate);
+		iam.setDateUpdated(currDate);
+
+		IAM addedIAM = registerUserCredential(iam);
+		insertAudit(addedIAM, AuditEnum.INSERT.getCode());
+		return addedIAM;
+	}
+    
+    public LinkedInLoginDTO linkedInLogin(LinkedInLoginDTO linkedInLoginDTO) throws Exception {
+
+		IAM userCred = getIAMByLinkedInId(linkedInLoginDTO.getLinkedInId());
+		Calendar currCal = Calendar.getInstance();
+		Date currDate = currCal.getTime();
+
+		if (userCred == null) {
+			linkedInLoginDTO.setLoginStatus(0);
+		}
+		else if (userCred.getFailedAttempt() >= IAMConstants.LOGIN.FAIL_ATTEMPT) {
+			linkedInLoginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_LOCKED);
+		}
+
+		if(linkedInLoginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_SUCCESS && userCred!=null) {
+			if(userCred.getSessionTimeout() != null&& currDate.before(userCred.getSessionTimeout())) {
+				linkedInLoginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_ACTIVE_SESSION);
+			}
+
+			if (linkedInLoginDTO.getLoginStatus() != IAMConstants.LOGIN.STATUS_ACTIVE_SESSION) {
+				currCal.add(Calendar.MINUTE, IAMConstants.LOGIN.SESSION_DURATION);
+				Date timeoutTime = currCal.getTime();
+				userCred.setSessionTimeout(timeoutTime);
+				linkedInLoginDTO.setUserId(userCred.getUserId());
+			}
+			if (userCred != null) {
+				userCred.setFailedAttempt(IAMConstants.LOGIN.DEFAULT_ATTEMPT);
+			}
+			
+			linkedInLoginDTO.setUserRole(userCred.getUserRole());
+		}
+		else if (linkedInLoginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_FAIL && userCred!=null) {
+			int failedAttempt = userCred.getFailedAttempt() + 1;
+			userCred.setFailedAttempt(failedAttempt);
+			
+		}
+		
+		if(userCred!=null) {
+			userCred.setDateUpdated(currDate);
+			iamRepository.save(userCred);
+			insertAudit(userCred, AuditEnum.UPDATE.getCode());
+		}
+		return linkedInLoginDTO;
+
+	}
 
 }

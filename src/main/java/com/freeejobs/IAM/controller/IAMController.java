@@ -31,6 +31,8 @@ import com.freeejobs.IAM.response.APIResponse;
 import com.freeejobs.IAM.response.Status;
 import com.freeejobs.IAM.dto.UserDTO;
 import com.freeejobs.IAM.constants.IAMConstants;
+import com.freeejobs.IAM.dto.LinkedInDTO;
+import com.freeejobs.IAM.dto.LinkedInLoginDTO;
 import com.freeejobs.IAM.dto.LoginDTO;
 
 @RestController
@@ -59,7 +61,7 @@ public class IAMController {
 				System.out.println(userId);
 				userProfile = IAMService.getUserByUserId(userId);
 					if(userProfile == null) {
-						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
 						//return null;
 						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user Profile.");
 						
@@ -532,4 +534,95 @@ public class IAMController {
 //    public ResponseEntity<String> deleteFile(@PathVariable String fileName) {
 //        return new ResponseEntity<>(productService.deleteFile(fileName), HttpStatus.OK);
 //    }
+	
+	@RequestMapping(value="/registerLinkedInUser", method= RequestMethod.POST)
+	public APIResponse registerLinkedInUser(HttpServletResponse response,
+			@RequestBody LinkedInDTO linkedInDTO) throws URISyntaxException {
+
+		IAM iam = null;
+		APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "Account login success.");
+		List<String> errors = new ArrayList<String>();
+		
+		try {
+			if(IAMService.isBlank(linkedInDTO.getFirstName())) {
+				errors.add("Invalid first name value");
+			}
+			if(IAMService.isBlank(linkedInDTO.getLastName())) {
+				errors.add("Invalid first name value");
+			}
+			if(IAMService.isBlank(linkedInDTO.getLinkedInId())) {
+				errors.add("Invalid LinkedIn Account");
+			}
+			if(errors.isEmpty()) {
+				iam = IAMService.registerLinkedInUser(linkedInDTO);
+					if(iam == null) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register LinkedIn User.");
+						
+					} else {
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully register User.");
+					}
+			} else {
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register LinkedIn User. Invalid Register LinkedIn Object.");
+				String listOfErrors = errors.stream().map(Object::toString)
+                        .collect(Collectors.joining(", "));
+				LOGGER.error(responseStatus.toString()+" "+listOfErrors);
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+//			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//			return null;
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to register LinkedIn User, Exception.");
+			LOGGER.error(e.getMessage(), e);
+		}
+		resp.setData(iam);
+		resp.setStatus(responseStatus);
+		return resp;
+	}
+	
+	@RequestMapping(value="/linkedInLogin", method= RequestMethod.POST)
+	public APIResponse linkedInLogin(HttpServletResponse response,
+			@RequestBody LinkedInLoginDTO linkedInLoginDTO) throws URISyntaxException {
+
+		LinkedInLoginDTO login = null;
+		APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "LinkedIn login success.");
+		List<String> errors = new ArrayList<String>();
+		try {
+			if(IAMService.isBlank(linkedInLoginDTO.getLinkedInId())) {
+				errors.add("Invalid linkedIn ID");
+			}
+			
+			if(errors.isEmpty()) {
+				login = IAMService.linkedInLogin(linkedInLoginDTO);
+					if(login.getLoginStatus()!=IAMConstants.LOGIN.STATUS_SUCCESS) {
+						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						//return null;
+						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login with LinkedIn, status: "+login.getLoginStatus());
+						
+					} else {
+
+						//response.setStatus(HttpServletResponse.SC_OK);
+						responseStatus = new Status(Status.Type.OK, "Successfully logged in.");
+					}
+			}else {
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login with LinkedIn. Invalid LinkedIn login Object.");
+				String listOfErrors = errors.stream().map(Object::toString)
+                        .collect(Collectors.joining(", "));
+				LOGGER.error(responseStatus.toString()+" "+listOfErrors);
+			}	
+		} catch (Exception e) {
+			System.out.println(e);
+//			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//			return null;
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login with LinkedIn, Exception.");
+			LOGGER.error(e.getMessage(), e);
+		}
+		resp.setData(login);
+		resp.setStatus(responseStatus);
+		return resp;
+	}
 }
