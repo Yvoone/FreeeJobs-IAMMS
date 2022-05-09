@@ -195,13 +195,13 @@ public class IAMService {
 		user.setAboutMe(userDTO.getAboutMe());
 		user.setAboutMeClient(userDTO.getAboutMeClient());
 		user.setSkills(userDTO.getSkills());
-		if(!userDTO.getLinkedInAcct().isEmpty()) {
+		if(userDTO.getLinkedInAcct() != null && !userDTO.getLinkedInAcct().isEmpty()) {
 			user.setLinkedInAcct(userDTO.getLinkedInAcct());
 		}
-		if(!userDTO.getProfilePicUrl().isEmpty()) {
+		if(userDTO.getProfilePicUrl() != null && !userDTO.getProfilePicUrl().isEmpty()) {
 			user.setProfilePicUrl(userDTO.getProfilePicUrl());
 		}
-		if(!userDTO.getResumeUrl().isEmpty()) {
+		if(userDTO.getResumeUrl() != null && !userDTO.getResumeUrl().isEmpty()) {
 			user.setResumeUrl(userDTO.getResumeUrl());
 		}
 		user.setDateCreated(currDate);
