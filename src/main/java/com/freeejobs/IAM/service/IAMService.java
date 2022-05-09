@@ -283,7 +283,12 @@ public class IAMService {
 		user.setAboutMeClient(userDto.getAboutMeClient());
 		user.setSkills(userDto.getSkills());
 		user.setDateUpdated(new Date());
-		user.setProfilePicUrl(userDto.getProfilePicUrl());
+		if(userDto.getProfilePicUrl() != null && !userDto.getProfilePicUrl().isEmpty()) {
+			user.setProfilePicUrl(userDto.getProfilePicUrl());
+		}
+		if(userDto.getResumeUrl() != null && !userDto.getResumeUrl().isEmpty()) {
+			user.setResumeUrl(userDto.getResumeUrl());
+		}
 		
 		IAM iam = getIAMByUserId(userDto.getId());
 		iam.setEmail(userDto.getEmail());

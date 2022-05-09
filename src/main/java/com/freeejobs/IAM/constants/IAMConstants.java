@@ -13,7 +13,7 @@ public class IAMConstants {
         public static final int STATUS_LOCKED = 3;
         public static final int FAIL_ATTEMPT = 3;
         public static final int DEFAULT_ATTEMPT = 0;
-        public static final int SESSION_DURATION = 15;
+        public static final int SESSION_DURATION = 5;
 
     }
 
