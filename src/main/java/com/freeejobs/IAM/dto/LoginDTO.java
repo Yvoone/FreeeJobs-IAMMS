@@ -11,6 +11,7 @@ public class LoginDTO {
 	private long userId;
 	private int userRole;
 	private LinkedInDTO linkedInDTO;
+	private String tempPassward;
 
     public long getId() {
 		return id;
@@ -62,5 +63,13 @@ public class LoginDTO {
 
 	public void setLinkedInDTO(LinkedInDTO linkedInDTO) {
 		this.linkedInDTO = linkedInDTO;
+	}
+
+	public String getTempPassward() {
+		return tempPassward;
+	}
+
+	public void setTempPassward(String tempPassward) {
+		this.tempPassward = tempPassward;
 	}
 }

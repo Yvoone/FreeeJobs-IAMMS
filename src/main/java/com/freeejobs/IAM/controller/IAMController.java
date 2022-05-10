@@ -640,7 +640,7 @@ public class IAMController {
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "login success.");
 		try {
-			if(IAMService.isEmailAdd(loginDTO.getEmail())) {
+			if(!IAMService.isEmailAdd(loginDTO.getEmail())) {
 				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to forget password. Invalid email.");
 				LOGGER.error(responseStatus.toString());
 			}else {
@@ -693,17 +693,17 @@ public class IAMController {
 	
 	@RequestMapping(value="/informResetPassword", method= RequestMethod.POST)
 	public APIResponse informResetPassword(HttpServletResponse response,
-			@RequestBody String email, @RequestBody long userId) throws URISyntaxException {
+			@RequestBody LoginDTO loginDTO) throws URISyntaxException {
 
 		String updateUser = "failed";
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "login success.");
 		try {
-			if(!IAMService.isEmailAdd(email)||!IAMService.isId(String.valueOf(userId))) {
+			if(!IAMService.isEmailAdd(loginDTO.getEmail())||!IAMService.isId(String.valueOf(loginDTO.getUserId()))) {
 				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to reset password. Invalid email or id.");
 				LOGGER.error(responseStatus.toString());
 			}else {
-				updateUser = IAMService.resetPassword(userId);
+				updateUser = IAMService.resetPassword(loginDTO.getUserId());
 				if(updateUser.equalsIgnoreCase("failed")) {
 					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 					//return null;
@@ -729,17 +729,17 @@ public class IAMController {
 	
 	@RequestMapping(value="/changePassword", method= RequestMethod.POST)
 	public APIResponse changePassword(HttpServletResponse response,
-			@RequestBody String email, @RequestBody String password) throws URISyntaxException {
+			@RequestBody LoginDTO loginDTO) throws URISyntaxException {
 
 		String updateUser = "failed";
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "login success.");
 		try {
-			if(!IAMService.isEmailAdd(email)) {
+			if(!IAMService.isEmailAdd(loginDTO.getEmail())) {
 				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to reset password. Invalid email or id.");
 				LOGGER.error(responseStatus.toString());
 			}else {
-				updateUser = IAMService.changePassword(email, password);
+				updateUser = IAMService.changePassword(loginDTO.getEmail(), loginDTO.getPassword(), loginDTO.getTempPassward());
 				if(updateUser.equalsIgnoreCase("failed")) {
 					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 					//return null;

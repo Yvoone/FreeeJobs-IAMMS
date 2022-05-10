@@ -846,19 +846,24 @@ public class IAMService {
 		
 	}
 
-	public String changePassword(String email, String password) {
+	public String changePassword(String email, String password, String tempPassword) {
 		IAM iam = iamRepository.findByEmail(email);
-		if(iam!=null) {
-			try {
-				iam.setPassword(rsaDecrypt(password));
-			} catch (NoSuchAlgorithmException e) {
-				LOGGER.error(e.getMessage(), e);
-			}
-			iam.setResetPwInd(8);
-			iamRepository.save(iam);
-			return "success";
-		}else {
+		if(iam==null) {
 			return "failed";
+		}else {
+			if(iam.getTempPassword().equals(tempPassword)) {
+				try {
+					iam.setPassword(rsaDecrypt(password));
+				} catch (NoSuchAlgorithmException e) {
+					LOGGER.error(e.getMessage(), e);
+				}
+				iam.setResetPwInd(8);
+				iamRepository.save(iam);
+				return "success";
+			}else {
+				return "failed";
+			}
+			
 		}
 	}
 
