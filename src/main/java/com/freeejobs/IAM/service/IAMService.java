@@ -714,6 +714,8 @@ public class IAMService {
 	public void getLinkedInProfile(LinkedInLoginDTO linkedInLoginDTO) {
 		String grant_type = "authorization_code";
 		String code = linkedInLoginDTO.getAuthCode();
+		System.out.println("<---------------------Testing----------------------------->");
+		System.out.println(code);
 		String redirect_uri = "https://freeejobs-web.herokuapp.com/register";
 		String client_id = "86dyp3ax33yxnv";
 		String client_secret = "yTTIjfaLrA18ryK2";
