@@ -16,6 +16,10 @@ import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
 import javax.security.cert.CertificateException;
 import javax.servlet.http.HttpServletResponse;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -804,7 +808,7 @@ public class IAMService {
 		}
 	}
 
-	public void getLinkedInProfile(LinkedInLoginDTO linkedInLoginDTO) {
+	public void getLinkedInProfile(LinkedInLoginDTO linkedInLoginDTO) throws ParseException {
 		String grant_type = "authorization_code";
 		String code = linkedInLoginDTO.getAuthCode();
 		System.out.println("<---------------------Testing----------------------------->");
@@ -825,6 +829,24 @@ public class IAMService {
 
 		System.out.println("<---------------------Testing----------------------------->");
 		System.out.println(result);
+
+		JSONParser parser = new JSONParser();  
+		JSONObject json = (JSONObject) parser.parse(result);
+		String oauth2_access_token = (String) json.get("access_token");
+
+		String result2 = restTemplate.getForObject("https://api.linkedin.com/v2/me?oauth2_access_token={oauth2_access_token}", 
+		 					String.class,
+							oauth2_access_token);
+		System.out.println("<---------------------Testing----------------------------->");
+		System.out.println(result2);
+		
+		String result3 = restTemplate.getForObject("https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))&oauth2_access_token={oauth2_access_token}", 
+		 					String.class,
+							oauth2_access_token);
+		
+		System.out.println("<---------------------Testing----------------------------->");
+		System.out.println(result3);
+
 		
 		
 		
