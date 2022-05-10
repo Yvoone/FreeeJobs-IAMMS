@@ -671,6 +671,9 @@ public class IAMService {
 		else if (userCred.getFailedAttempt() >= IAMConstants.LOGIN.FAIL_ATTEMPT) {
 			linkedInLoginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_LOCKED);
 		}
+		else {
+			linkedInLoginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_SUCCESS);
+		}
 
 		if(linkedInLoginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_SUCCESS && userCred!=null) {
 			if(userCred.getSessionTimeout() != null&& currDate.before(userCred.getSessionTimeout())) {
