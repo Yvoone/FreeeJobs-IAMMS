@@ -17,6 +17,7 @@ import javax.mail.internet.MimeMessage;
 import javax.security.cert.CertificateException;
 import javax.servlet.http.HttpServletResponse;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -666,53 +667,109 @@ public class IAMService {
 		return addedIAM;
 	}
     
-    public LinkedInLoginDTO linkedInLogin(LinkedInLoginDTO linkedInLoginDTO) throws Exception {
+    public LoginDTO linkedInLogin(LinkedInLoginDTO linkedInLoginDTO) throws Exception {
+		LoginDTO loginDTO = new LoginDTO();
+		try {
+			String grant_type = "authorization_code";
+			String code = linkedInLoginDTO.getAuthCode();
+			System.out.println("<---------------------Testing----------------------------->");
+			System.out.println(code);
+			String redirect_uri = "https://freeejobs-web.herokuapp.com/login";
+			String client_id = "86dyp3ax33yxnv";
+			String client_secret = "yTTIjfaLrA18ryK2";
 
-		IAM userCred = null;
-		//getIAMByLinkedInId(linkedInLoginDTO.getLinkedInId());
-		getLinkedInProfile(linkedInLoginDTO);
-		Calendar currCal = Calendar.getInstance();
-		Date currDate = currCal.getTime();
+			RestTemplate restTemplate = new RestTemplate();
 
-		if (userCred == null) {
-			linkedInLoginDTO.setLoginStatus(0);
-		}
-		else if (userCred.getFailedAttempt() >= IAMConstants.LOGIN.FAIL_ATTEMPT) {
-			linkedInLoginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_LOCKED);
-		}
-		else {
-			linkedInLoginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_SUCCESS);
-		}
+			String result = restTemplate.getForObject("https://www.linkedin.com/oauth/v2/accessToken?grant_type={grant_type}&code={code}&redirect_uri={redirect_uri}&client_id={client_id}&client_secret={client_secret}", 
+								String.class,
+								grant_type,
+								code,
+								redirect_uri,
+								client_id,
+								client_secret);
 
-		if(linkedInLoginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_SUCCESS && userCred!=null) {
-			if(userCred.getSessionTimeout() != null&& currDate.before(userCred.getSessionTimeout())) {
-				linkedInLoginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_ACTIVE_SESSION);
-			}
+			System.out.println("<---------------------Testing----------------------------->");
+			System.out.println(result);
 
-			if (linkedInLoginDTO.getLoginStatus() != IAMConstants.LOGIN.STATUS_ACTIVE_SESSION) {
-				currCal.add(Calendar.MINUTE, IAMConstants.LOGIN.SESSION_DURATION);
-				Date timeoutTime = currCal.getTime();
-				userCred.setSessionTimeout(timeoutTime);
-				linkedInLoginDTO.setUserId(userCred.getUserId());
-			}
-			if (userCred != null) {
-				userCred.setFailedAttempt(IAMConstants.LOGIN.DEFAULT_ATTEMPT);
-			}
+			JSONParser parser = new JSONParser();  
+			JSONObject json = (JSONObject) parser.parse(result);
+			String oauth2_access_token = (String) json.get("access_token");
+
+			String result2 = restTemplate.getForObject("https://api.linkedin.com/v2/me?oauth2_access_token={oauth2_access_token}", 
+								String.class,
+								oauth2_access_token);
+			System.out.println("<---------------------Testing----------------------------->");
+			System.out.println(result2);
+			JSONObject json2 = (JSONObject) parser.parse(result2);
+			String lastName = (String) json2.get("localizedLastName");
+			String firstName = (String) json2.get("localizedFirstName");
+
+			String result3 = restTemplate.getForObject("https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))&oauth2_access_token={oauth2_access_token}", 
+								String.class,
+								oauth2_access_token);
 			
-			linkedInLoginDTO.setUserRole(userCred.getUserRole());
-		}
-		else if (linkedInLoginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_FAIL && userCred!=null) {
-			int failedAttempt = userCred.getFailedAttempt() + 1;
-			userCred.setFailedAttempt(failedAttempt);
+			System.out.println("<---------------------Testing----------------------------->");
+			System.out.println(result3);
+			JSONObject json3 = (JSONObject) parser.parse(result3);
+			JSONArray elements = (JSONArray) json3.get("elements");
+			JSONObject element = (JSONObject) elements.get(0);
+			JSONObject handle = (JSONObject) element.get("handle~");
+			String email = (String) handle.get("emailAddress");
+
+			IAM userCred = getIAMByEmail(email);
 			
+
+			
+			
+			
+			if(userCred != null) {
+
+				Calendar currCal = Calendar.getInstance();
+				Date currDate = currCal.getTime();
+
+					if(userCred.getSessionTimeout() != null&& currDate.before(userCred.getSessionTimeout())) {
+						loginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_ACTIVE_SESSION);
+					}
+
+					if (loginDTO.getLoginStatus() != IAMConstants.LOGIN.STATUS_ACTIVE_SESSION) {
+						currCal.add(Calendar.MINUTE, IAMConstants.LOGIN.SESSION_DURATION);
+						Date timeoutTime = currCal.getTime();
+						userCred.setSessionTimeout(timeoutTime);
+						loginDTO.setUserId(userCred.getUserId());
+					}
+					if (userCred != null) {
+						userCred.setFailedAttempt(IAMConstants.LOGIN.DEFAULT_ATTEMPT);
+					}
+					
+					loginDTO.setUserRole(userCred.getUserRole());
+				
+					userCred.setDateUpdated(currDate);
+					iamRepository.save(userCred);
+					insertAudit(userCred, AuditEnum.UPDATE.getCode());
+
+				
+				loginDTO.setUserId(userCred.getUserId());
+				loginDTO.setUserRole(userCred.getUserRole());
+				loginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_SUCCESS);
+				
+
+			}
+			else {
+				LinkedInDTO linkedInDTO = new LinkedInDTO();
+				linkedInDTO.setEmail(email);
+				linkedInDTO.setLastName(lastName);
+				linkedInDTO.setFirstName(firstName);
+				loginDTO.setLinkedInDTO(linkedInDTO);
+				loginDTO.setLoginStatus(11);
+				
+			}
+
+			return loginDTO;
 		}
-		
-		if(userCred!=null) {
-			userCred.setDateUpdated(currDate);
-			iamRepository.save(userCred);
-			insertAudit(userCred, AuditEnum.UPDATE.getCode());
+		catch (ParseException e) {
+			loginDTO.setLoginStatus(IAMConstants.LOGIN.STATUS_FAIL);
+			return loginDTO;
 		}
-		return linkedInLoginDTO;
 
 	}
     
@@ -808,50 +865,6 @@ public class IAMService {
 		}
 	}
 
-	public void getLinkedInProfile(LinkedInLoginDTO linkedInLoginDTO) throws ParseException {
-		String grant_type = "authorization_code";
-		String code = linkedInLoginDTO.getAuthCode();
-		System.out.println("<---------------------Testing----------------------------->");
-		System.out.println(code);
-		String redirect_uri = "https://freeejobs-web.herokuapp.com/login";
-		String client_id = "86dyp3ax33yxnv";
-		String client_secret = "yTTIjfaLrA18ryK2";
-
-		RestTemplate restTemplate = new RestTemplate();
-
-		String result = restTemplate.getForObject("https://www.linkedin.com/oauth/v2/accessToken?grant_type={grant_type}&code={code}&redirect_uri={redirect_uri}&client_id={client_id}&client_secret={client_secret}", 
-		 					String.class,
-							grant_type,
-							code,
-							redirect_uri,
-							client_id,
-							client_secret);
-
-		System.out.println("<---------------------Testing----------------------------->");
-		System.out.println(result);
-
-		JSONParser parser = new JSONParser();  
-		JSONObject json = (JSONObject) parser.parse(result);
-		String oauth2_access_token = (String) json.get("access_token");
-
-		String result2 = restTemplate.getForObject("https://api.linkedin.com/v2/me?oauth2_access_token={oauth2_access_token}", 
-		 					String.class,
-							oauth2_access_token);
-		System.out.println("<---------------------Testing----------------------------->");
-		System.out.println(result2);
-		
-		String result3 = restTemplate.getForObject("https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))&oauth2_access_token={oauth2_access_token}", 
-		 					String.class,
-							oauth2_access_token);
-		
-		System.out.println("<---------------------Testing----------------------------->");
-		System.out.println(result3);
-
-		
-		
-		
-
-	}
 	
 
 }
