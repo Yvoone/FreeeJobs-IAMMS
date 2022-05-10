@@ -638,15 +638,16 @@ public class IAMController {
 				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to forget password. Invalid email.");
 				LOGGER.error(responseStatus.toString());
 			}else {
-				updateUser = IAMService.forgetPassword(email);
-				if(updateUser.equalsIgnoreCase("failed")) {
+				IAM iamUpdated = IAMService.forgetPassword(email);
+				if(iamUpdated == null) {
 					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 					//return null;
-					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to update profile.");
-					updateUser = "failed";
+					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to forget password.");
+					
 				} else {
 					//response.setStatus(HttpServletResponse.SC_OK);
-					responseStatus = new Status(Status.Type.OK, "Successfully update profile.");
+					responseStatus = new Status(Status.Type.OK, "Successfully forget password.");
+					updateUser = "success";
 				}
 			}
 
@@ -654,7 +655,7 @@ public class IAMController {
 			System.out.println(e);
 //			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 //			return null;
-			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login with LinkedIn, Exception.");
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to forget password, Exception.");
 			LOGGER.error(e.getMessage(), e);
 		}
 		resp.setData(updateUser);

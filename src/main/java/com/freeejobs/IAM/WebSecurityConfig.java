@@ -30,7 +30,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
     	//CookieCsrfTokenRepository tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         //tokenRepository.setCookiePath("/");
-        http.httpBasic().and().csrf().ignoringAntMatchers("/iam/login","/iam/logout/**", "/iam/registerUser/**", "/iam/registerLinkedInUser")
+        http.httpBasic().and().csrf().ignoringAntMatchers("/iam/login","/iam/logout/**", "/iam/registerUser/**", "/iam/registerLinkedInUser"
+        		, "/iam/forgetPassword", "/iam/changePassword")
         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
 
     }

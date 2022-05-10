@@ -145,7 +145,8 @@ public class IAMService {
 			String inputPwd = rsaDecrypt(loginDTO.getPassword());
 			String dbPwd = aesDecryption(userCred.getPassword());
 			loginDTO.setLoginStatus(getLoginStatus(inputPwd, dbPwd));
-		}
+			userCred.setResetPwInd(IAMConstants.RESETIND.TO_NULL);
+			}
 
 		if(loginDTO.getLoginStatus() == IAMConstants.LOGIN.STATUS_SUCCESS && userCred!=null) {
 			if(userCred.getSessionTimeout() != null&& currDate.before(userCred.getSessionTimeout())) {
@@ -773,18 +774,14 @@ public class IAMService {
 
 	}
     
-    public String forgetPassword(String email) {
+    public IAM forgetPassword(String email) {
     	//check if user exists
 		IAM iam = iamRepository.findByEmail(email);
-		if(iam!=null) {
-			String randomPassword = RandomString.make(8);
-			iam.setTempPassword(randomPassword);
-			iam.setResetPwInd(IAMConstants.RESETIND.TO_RESET);
-			iamRepository.save(iam);
-			return "success";
-		}else {
-			return "failed";
-		}
+		String randomPassword = RandomString.make(8);
+		iam.setTempPassword(randomPassword);
+		iam.setResetPwInd(1);
+		IAM iamSaved = iamRepository.save(iam);
+		return iamSaved;
 		
 	}
     
