@@ -601,7 +601,13 @@ public class IAMController {
 					if(login.getLoginStatus()!=IAMConstants.LOGIN.STATUS_SUCCESS) {
 						//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 						//return null;
-						responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login with LinkedIn, status: "+login.getLoginStatus());
+						if(login.getLoginStatus() == 11) {
+							responseStatus = new Status(Status.Type.OK, "First Login with LinkedIn, status: "+login.getLoginStatus());
+						}
+						else {
+							responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login with LinkedIn, status: "+login.getLoginStatus());
+						}
+						
 						
 					} else {
 
