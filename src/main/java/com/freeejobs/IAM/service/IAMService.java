@@ -720,7 +720,7 @@ public class IAMService {
 
 		RestTemplate restTemplate = new RestTemplate();
 
-		String result = restTemplate.getForObject("https://www.linkedin.com/oauth/v2/accessToken?grant_type={grant_type}&code={code}&redirect_uri={redirect_uri}&client_id{client_id}&client_secret{client_secret}", 
+		String result = restTemplate.getForObject("https://www.linkedin.com/oauth/v2/accessToken?grant_type={grant_type}&code={code}&redirect_uri={redirect_uri}&client_id={client_id}&client_secret={client_secret}", 
 		 					String.class,
 							grant_type,
 							code,
