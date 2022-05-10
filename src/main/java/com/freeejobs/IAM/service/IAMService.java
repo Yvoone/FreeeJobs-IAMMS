@@ -840,7 +840,7 @@ public class IAMService {
 		System.out.println("<---------------------Testing----------------------------->");
 		System.out.println(result2);
 		
-		String result3 = restTemplate.getForObject("https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))?oauth2_access_token={oauth2_access_token}", 
+		String result3 = restTemplate.getForObject("https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))&oauth2_access_token={oauth2_access_token}", 
 		 					String.class,
 							oauth2_access_token);
 		
