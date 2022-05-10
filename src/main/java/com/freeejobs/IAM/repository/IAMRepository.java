@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.freeejobs.IAM.model.IAM;
+import com.freeejobs.IAM.model.User;
 
 @Repository
 public interface IAMRepository extends JpaRepository<IAM, Long> {
@@ -15,4 +16,7 @@ public interface IAMRepository extends JpaRepository<IAM, Long> {
 	public List<IAM> findAll();
 	public IAM findByUserId(long id);
 	public IAM findByLinkedInId(String id);
+	
+	@Query("select t from IAM t where t.resetPwInd = ?1")
+	public List<IAM> findUsersWithResetInd(int resetPwInd);
 }

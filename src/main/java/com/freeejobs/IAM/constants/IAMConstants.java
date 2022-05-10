@@ -24,5 +24,13 @@ public class IAMConstants {
         public static final int USER_ROLE_REGULAR = 1;
 
     }
+    
+    public static final class RESETIND {
+        private RESETIND() {}
+
+        public static final int TO_RESET = 1;
+        public static final int TO_FORCE_PW_CHANGE = 2;
+
+    }
 
 }

@@ -67,6 +67,7 @@ import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
@@ -709,6 +710,98 @@ public class IAMService {
 		}
 		return linkedInLoginDTO;
 
+	}
+    
+    public String forgetPassword(String email) {
+    	//check if user exists
+		IAM iam = iamRepository.findByEmail(email);
+		if(iam!=null) {
+			String randomPassword = RandomString.make(8);
+			iam.setTempPassword(randomPassword);
+			iam.setResetPwInd(IAMConstants.RESETIND.TO_RESET);
+			iamRepository.save(iam);
+			return "success";
+		}else {
+			return "failed";
+		}
+		
+	}
+    
+    public List<IAM> getUsersToResetPassword() {
+    	//check if user exists
+    	List<IAM> users = iamRepository.findUsersWithResetInd(IAMConstants.RESETIND.TO_RESET);
+    	List<IAM> onlyIdAndEmail = new ArrayList<IAM>();
+		for(IAM user: users) {
+			IAM toAdd = new IAM();
+			toAdd.setUserId(user.getUserId());
+			toAdd.setEmail(user.getEmail());
+			onlyIdAndEmail.add(toAdd);
+		}
+		return onlyIdAndEmail;
+	}
+    
+    public String resetPassword(long userId) {
+    	//check if user exists
+		IAM iam = iamRepository.findByUserId(userId);
+		if(iam!=null) {
+			iam.setResetPwInd(IAMConstants.RESETIND.TO_FORCE_PW_CHANGE);
+			iamRepository.save(iam);
+			
+			Properties props = new Properties();
+	        props.put("mail.smtp.ssl.enable", "true");
+	        props.put("mail.smtp.starttls.enable", "true");
+	    	MimeMessage message = mailSender.createMimeMessage();              
+	        MimeMessageHelper helper = new MimeMessageHelper(message);
+	        
+	        User user = getUserByUserId(iam.getUserId());
+	         
+	        try {
+				helper.setFrom("contact@freeejobs.com", "FreeeJobs Support");
+			
+	        helper.setTo(iam.getEmail());
+	         
+	        String subject = "Reset Your Password!";
+	         
+	        String content = "<p>Hello " + user.getFirstName()+ "</p>"
+	                + "<p>Please reset your password from https://freeejobs-web.herokuapp.com/resetPassword"
+	                + "Your temporary password is:</p>"
+	                + "<p><b>" + iam.getTempPassword() + "</b></p>"
+	                + "<br>";
+	         
+	        helper.setSubject(subject);
+	         
+	        helper.setText(content, true);
+	         
+	        mailSender.send(message);  
+	        } catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+	        	LOGGER.error(e.getMessage(), e);
+			} catch (MessagingException e) {
+				// TODO Auto-generated catch block
+				LOGGER.error(e.getMessage(), e);
+			}
+	        
+			return "success";
+		}else {
+			return "failed";
+		}
+		
+	}
+
+	public String changePassword(String email, String password) {
+		IAM iam = iamRepository.findByEmail(email);
+		if(iam!=null) {
+			try {
+				iam.setPassword(rsaDecrypt(password));
+			} catch (NoSuchAlgorithmException e) {
+				LOGGER.error(e.getMessage(), e);
+			}
+			iam.setResetPwInd(8);
+			iamRepository.save(iam);
+			return "success";
+		}else {
+			return "failed";
+		}
 	}
 
 	public void getLinkedInProfile(LinkedInLoginDTO linkedInLoginDTO) {

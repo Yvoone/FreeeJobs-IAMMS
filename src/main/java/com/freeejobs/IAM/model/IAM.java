@@ -26,6 +26,9 @@ public class IAM {
 
 	@Column(name = "password")
 	private String password;
+	
+	@Column(name = "tempPassword")
+	private String tempPassword;
 
 	@Column(name = "email")
 	private String email;
@@ -38,6 +41,9 @@ public class IAM {
 
 	@Column(name = "failedAttempt")
 	private int failedAttempt;
+	
+	@Column(name = "resetPwInd")
+	private int resetPwInd;
 
 	@Column(name = "dateCreated", columnDefinition="DATETIME")
 	@Temporal(TemporalType.TIMESTAMP)
@@ -75,6 +81,14 @@ public class IAM {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getTempPassword() {
+		return tempPassword;
+	}
+
+	public void setTempPassword(String tempPassword) {
+		this.tempPassword = tempPassword;
 	}
 
 	public long getUserId() {
@@ -132,6 +146,14 @@ public class IAM {
 
 	public void setFailedAttempt(int failedAttempt) {
 		this.failedAttempt = failedAttempt;
+	}
+
+	public int getResetPwInd() {
+		return resetPwInd;
+	}
+
+	public void setResetPwInd(int resetPwInd) {
+		this.resetPwInd = resetPwInd;
 	}
 
 	public String getOtpPassword() {
