@@ -585,11 +585,13 @@ public class IAMController {
 	
 	@RequestMapping(value="/linkedInLogin", method= RequestMethod.POST)
 	public APIResponse linkedInLogin(HttpServletResponse response,
+			@RequestParam String authCode,
 			@RequestBody LinkedInLoginDTO linkedInLoginDTO) throws URISyntaxException {
 
 		LinkedInLoginDTO login = null;
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "LinkedIn login success.");
+		linkedInLoginDTO.setAuthCode(authCode);
 		List<String> errors = new ArrayList<String>();
 		try {
 			// if(IAMService.isBlank(linkedInLoginDTO.getLinkedInId())) {
