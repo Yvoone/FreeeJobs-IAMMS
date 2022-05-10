@@ -634,17 +634,17 @@ public class IAMController {
 	
 	@RequestMapping(value="/forgetPassword", method= RequestMethod.POST)
 	public APIResponse forgetPassword(HttpServletResponse response,
-			@RequestBody String email) throws URISyntaxException {
+			@RequestBody LoginDTO loginDTO) throws URISyntaxException {
 
 		String updateUser = "failed";
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "login success.");
 		try {
-			if(IAMService.isEmailAdd(email)) {
+			if(IAMService.isEmailAdd(loginDTO.getEmail())) {
 				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to forget password. Invalid email.");
 				LOGGER.error(responseStatus.toString());
 			}else {
-				IAM iamUpdated = IAMService.forgetPassword(email);
+				IAM iamUpdated = IAMService.forgetPassword(loginDTO.getEmail());
 				if(iamUpdated == null) {
 					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 					//return null;
