@@ -727,8 +727,8 @@ public class IAMController {
 		return resp;
 	}
 	
-	@RequestMapping(value="/changePassword", method= RequestMethod.POST)
-	public APIResponse changePassword(HttpServletResponse response,
+	@RequestMapping(value="/resetPassword", method= RequestMethod.POST)
+	public APIResponse resetPassword(HttpServletResponse response,
 			@RequestBody LoginDTO loginDTO) throws URISyntaxException {
 
 		String updateUser = "failed";

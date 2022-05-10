@@ -822,7 +822,7 @@ public class IAMService {
 	         
 	        String content = "<p>Hello " + user.getFirstName()+ "</p>"
 	                + "<p>Please reset your password from https://freeejobs-web.herokuapp.com/resetPassword"
-	                + "Your temporary password is:</p>"
+	                + " ,Your temporary password is:</p>"
 	                + "<p><b>" + iam.getTempPassword() + "</b></p>"
 	                + "<br>";
 	         
