@@ -592,9 +592,9 @@ public class IAMController {
 		Status responseStatus = new Status(Status.Type.OK, "LinkedIn login success.");
 		List<String> errors = new ArrayList<String>();
 		try {
-			if(IAMService.isBlank(linkedInLoginDTO.getLinkedInId())) {
-				errors.add("Invalid linkedIn ID");
-			}
+			// if(IAMService.isBlank(linkedInLoginDTO.getLinkedInId())) {
+			// 	errors.add("Invalid linkedIn ID");
+			// }
 			
 			if(errors.isEmpty()) {
 				login = IAMService.linkedInLogin(linkedInLoginDTO);
