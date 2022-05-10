@@ -587,7 +587,7 @@ public class IAMController {
 	public APIResponse linkedInLogin(HttpServletResponse response,
 			@RequestBody LinkedInLoginDTO linkedInLoginDTO) throws URISyntaxException {
 
-		LinkedInLoginDTO login = null;
+		LoginDTO login = null;
 		APIResponse resp = new APIResponse();
 		Status responseStatus = new Status(Status.Type.OK, "LinkedIn login success.");
 		List<String> errors = new ArrayList<String>();

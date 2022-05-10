@@ -10,6 +10,7 @@ public class LoginDTO {
 	private int loginStatus;
 	private long userId;
 	private int userRole;
+	private LinkedInDTO linkedInDTO;
 
     public long getId() {
 		return id;
@@ -53,5 +54,13 @@ public class LoginDTO {
 
 	public void setUserRole(int userRole) {
 		this.userRole = userRole;
+	}
+
+	public LinkedInDTO getLinkedInDTO() {
+		return linkedInDTO;
+	}
+
+	public void setLinkedInDTO(LinkedInDTO linkedInDTO) {
+		this.linkedInDTO = linkedInDTO;
 	}
 }
