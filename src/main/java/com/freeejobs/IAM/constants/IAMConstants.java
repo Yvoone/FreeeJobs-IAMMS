@@ -30,6 +30,7 @@ public class IAMConstants {
 
         public static final int TO_RESET = 1;
         public static final int TO_FORCE_PW_CHANGE = 2;
+        public static final int TO_NULL = 0;
 
     }
 
