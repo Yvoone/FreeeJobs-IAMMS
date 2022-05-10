@@ -663,7 +663,8 @@ public class IAMService {
     
     public LinkedInLoginDTO linkedInLogin(LinkedInLoginDTO linkedInLoginDTO) throws Exception {
 
-		IAM userCred = getIAMByLinkedInId(linkedInLoginDTO.getLinkedInId());
+		IAM userCred = null;
+		//getIAMByLinkedInId(linkedInLoginDTO.getLinkedInId());
 		getLinkedInProfile(linkedInLoginDTO);
 		Calendar currCal = Calendar.getInstance();
 		Date currDate = currCal.getTime();
