@@ -625,4 +625,134 @@ public class IAMController {
 		resp.setStatus(responseStatus);
 		return resp;
 	}
+	
+	@RequestMapping(value="/forgetPassword", method= RequestMethod.POST)
+	public APIResponse forgetPassword(HttpServletResponse response,
+			@RequestBody String email) throws URISyntaxException {
+
+		String updateUser = "failed";
+		APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "login success.");
+		try {
+			if(IAMService.isEmailAdd(email)) {
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to forget password. Invalid email.");
+				LOGGER.error(responseStatus.toString());
+			}else {
+				updateUser = IAMService.forgetPassword(email);
+				if(updateUser.equalsIgnoreCase("failed")) {
+					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					//return null;
+					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to update profile.");
+					updateUser = "failed";
+				} else {
+					//response.setStatus(HttpServletResponse.SC_OK);
+					responseStatus = new Status(Status.Type.OK, "Successfully update profile.");
+				}
+			}
+
+		} catch (Exception e) {
+			System.out.println(e);
+//			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//			return null;
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to login with LinkedIn, Exception.");
+			LOGGER.error(e.getMessage(), e);
+		}
+		resp.setData(updateUser);
+		resp.setStatus(responseStatus);
+		return resp;
+	}
+	
+	@RequestMapping(value="/getUsersToResetPassword", method= RequestMethod.GET)
+	public APIResponse getUsersToResetPassword(HttpServletResponse response) throws URISyntaxException {
+
+		
+		List<IAM> usersToResetPassword = null;
+		APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "Successfully get users to reset password.");
+		
+		try {
+			usersToResetPassword = IAMService.getUsersToResetPassword();
+		} catch (Exception e) {
+			System.out.println(e);
+//			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//			return null;
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to get user to reset password, Exception.");
+			LOGGER.error(e.getMessage(), e);
+		}
+		resp.setData(usersToResetPassword);
+		resp.setStatus(responseStatus);
+		return resp;
+	}
+	
+	@RequestMapping(value="/informResetPassword", method= RequestMethod.POST)
+	public APIResponse informResetPassword(HttpServletResponse response,
+			@RequestBody String email, @RequestBody long userId) throws URISyntaxException {
+
+		String updateUser = "failed";
+		APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "login success.");
+		try {
+			if(!IAMService.isEmailAdd(email)||!IAMService.isId(String.valueOf(userId))) {
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to reset password. Invalid email or id.");
+				LOGGER.error(responseStatus.toString());
+			}else {
+				updateUser = IAMService.resetPassword(userId);
+				if(updateUser.equalsIgnoreCase("failed")) {
+					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					//return null;
+					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to reset password..");
+					updateUser = "failed";
+				} else {
+					//response.setStatus(HttpServletResponse.SC_OK);
+					responseStatus = new Status(Status.Type.OK, "Successfully reset password..");
+				}
+			}
+
+		} catch (Exception e) {
+			System.out.println(e);
+//			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//			return null;
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to reset password., Exception.");
+			LOGGER.error(e.getMessage(), e);
+		}
+		resp.setData(updateUser);
+		resp.setStatus(responseStatus);
+		return resp;
+	}
+	
+	@RequestMapping(value="/changePassword", method= RequestMethod.POST)
+	public APIResponse changePassword(HttpServletResponse response,
+			@RequestBody String email, @RequestBody String password) throws URISyntaxException {
+
+		String updateUser = "failed";
+		APIResponse resp = new APIResponse();
+		Status responseStatus = new Status(Status.Type.OK, "login success.");
+		try {
+			if(!IAMService.isEmailAdd(email)) {
+				responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to reset password. Invalid email or id.");
+				LOGGER.error(responseStatus.toString());
+			}else {
+				updateUser = IAMService.changePassword(email, password);
+				if(updateUser.equalsIgnoreCase("failed")) {
+					//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					//return null;
+					responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to reset password..");
+					updateUser = "failed";
+				} else {
+					//response.setStatus(HttpServletResponse.SC_OK);
+					responseStatus = new Status(Status.Type.OK, "Successfully reset password..");
+				}
+			}
+
+		} catch (Exception e) {
+			System.out.println(e);
+//			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//			return null;
+			responseStatus = new Status(Status.Type.INTERNAL_SERVER_ERROR, "Failed to reset password., Exception.");
+			LOGGER.error(e.getMessage(), e);
+		}
+		resp.setData(updateUser);
+		resp.setStatus(responseStatus);
+		return resp;
+	}
 }
