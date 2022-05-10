@@ -732,6 +732,24 @@ public class IAMService {
 
 		System.out.println("<---------------------Testing----------------------------->");
 		System.out.println(result);
+
+		JSONParser parser = new JSONParser();  
+		JSONObject json = (JSONObject) parser.parse(result);
+		String oauth2_access_token = json.getString("access_token");
+
+		String result2 = restTemplate.getForObject("https://api.linkedin.com/v2/me?oauth2_access_token={oauth2_access_token}", 
+		 					String.class,
+							oauth2_access_token);
+		System.out.println("<---------------------Testing----------------------------->");
+		System.out.println(result2);
+		
+		String result3 = restTemplate.getForObject("https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))?oauth2_access_token={oauth2_access_token}", 
+		 					String.class,
+							oauth2_access_token);
+		
+		System.out.println("<---------------------Testing----------------------------->");
+		System.out.println(result3);
+
 		
 		
 		
