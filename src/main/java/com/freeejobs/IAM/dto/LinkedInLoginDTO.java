@@ -14,6 +14,8 @@ public class LinkedInLoginDTO {
 	
 	private int userRole;
 
+	private String authCode;
+
 	public long getId() {
 		return id;
 	}
@@ -60,6 +62,14 @@ public class LinkedInLoginDTO {
 
 	public void setUserRole(int userRole) {
 		this.userRole = userRole;
+	}
+
+	public String getAuthCode() {
+		return authCode;
+	}
+
+	public void setAuthCode(String authCode) {
+		this.authCode = authCode;
 	}
 	
 }

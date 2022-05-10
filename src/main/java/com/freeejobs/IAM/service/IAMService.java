@@ -76,6 +76,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.web.client.RestTemplate;
+
 
 @Service
 public class IAMService {
@@ -662,6 +664,7 @@ public class IAMService {
     public LinkedInLoginDTO linkedInLogin(LinkedInLoginDTO linkedInLoginDTO) throws Exception {
 
 		IAM userCred = getIAMByLinkedInId(linkedInLoginDTO.getLinkedInId());
+		getLinkedInProfile(linkedInLoginDTO);
 		Calendar currCal = Calendar.getInstance();
 		Date currDate = currCal.getTime();
 
@@ -706,5 +709,31 @@ public class IAMService {
 		return linkedInLoginDTO;
 
 	}
+
+	public void getLinkedInProfile(LinkedInLoginDTO linkedInLoginDTO) {
+		String grant_type = "authorization_code";
+		String code = linkedInLoginDTO.getAuthCode();
+		String redirect_uri = "https://freeejobs-web.herokuapp.com/register";
+		String client_id = "86dyp3ax33yxnv";
+		String client_secret = "yTTIjfaLrA18ryK2";
+
+		RestTemplate restTemplate = new RestTemplate();
+
+		String result = restTemplate.getForObject("https://www.linkedin.com/oauth/v2/accessToken?grant_type={grant_type}&code={code}&redirect_uri={redirect_uri}&client_id{client_id}&client_secret{client_secret}", 
+		 					String.class,
+							grant_type,
+							code,
+							redirect_uri,
+							client_id,
+							client_secret);
+
+		System.out.println("<---------------------Testing----------------------------->");
+		System.out.println(result);
+		
+		
+		
+
+	}
+	
 
 }
